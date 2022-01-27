@@ -1,1 +1,1 @@
-# political_framing_sg
+# Political Framing: A Singapore Study
