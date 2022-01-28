@@ -58,7 +58,7 @@ class Parliament:
         date_em, *_ = sitting_date_row.find_elements(By.TAG_NAME, "em")
         title_text = title_link.text
         illegal_characters_removed = re.sub(r'[^A-Za-z0-9 ]+', '', title_text)
-        sitting_date_text = date_em.text[-10:-1] # example: Sitting Date: 24-1-1968,
+        sitting_date_text = date_em.text[14:-1] # example: Sitting Date: 24-1-1968,
         filename = f"{sitting_date_text} {illegal_characters_removed[:50]}.json"
 
         path = f"{self.path}\\{filename}"
@@ -109,7 +109,7 @@ class Parliament:
                 speeches_loc = list(zip(speaker_starts, speaker_ends, speech_text_starts, speech_text_ends))
                 speeches = {
                     "title": title_text,
-                    "data": sitting_date_text,
+                    "date": sitting_date_text,
                     "speeches": [
                     {
                         "name": text[name_start+1:name_end-1], 
