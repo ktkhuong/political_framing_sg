@@ -52,6 +52,7 @@ def main():
     for i in range(1,len(by_parliament_select.options)):
         # select parliament
         by_parliament_select.select_by_index(i)
+        
     # start searching
     search_btn.click()
     def on_done():

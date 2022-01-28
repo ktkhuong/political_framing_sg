@@ -62,6 +62,10 @@ class Parliament:
         filename = f"{sitting_date_text} {illegal_characters_removed[:50]}.json"
 
         path = f"{self.path}\\{filename}"
+        if os.path.exists(path):
+            with open("errors.log", "a", encoding="utf-8") as f:
+                f.write(f"{path} exists \n")
+            return
 
         self.driver.execute_script("arguments[0].scrollIntoView();", title_link)
         sleep(1)
@@ -75,6 +79,7 @@ class Parliament:
             # remove noise text
             self.driver.execute_script("""
                 document.querySelector("table[border='1']")?.remove();
+                document.querySelector(".hansardcustom table")?.remove();
                 document.querySelectorAll("b,strong").forEach((element) => {
                     if (element.innerText.startsWith("Column: ")) {
                         element.remove();
@@ -114,7 +119,7 @@ class Parliament:
                 with open(f"{path}", "w", encoding="utf-8") as f:
                     f.write(json.dumps(speeches))
         except Exception as e:
-            with open("error_log.txt", "a", encoding="utf-8") as f:
+            with open("errors.log", "a", encoding="utf-8") as f:
                 f.write(f"{sitting_date_text} {title_text}: {str(e)}\n")
 
         self.driver.close()
