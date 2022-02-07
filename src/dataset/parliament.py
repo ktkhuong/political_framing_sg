@@ -9,6 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from time import sleep
+from database import Database
 import os
 import getopt, sys
 import re
@@ -19,9 +20,7 @@ class Parliament:
     def __init__(self, path: str, driver: webdriver.Chrome) -> None:
         self.path = path
         self.driver = driver
-        connection = sqlite3.connect('parliament.db', isolation_level=None)
-        cursor = connection.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS parliament (date TEXT, title TEXT, url TEXT, path TEXT)''')
+        self.db = Database('parliament.db', 'parliament') 
 
     def extract_data(self):
         self.switch_to_tab()
@@ -66,7 +65,7 @@ class Parliament:
         filename = f"{sitting_date_text} {alnum}.json"
 
         path = f"{self.path}\\{filename}"
-        if self.debate_visited(sitting_date_text, title_text):
+        if self.db.record_exists(sitting_date_text, title_text):
             with open("errors.log", "a", encoding="utf-8") as f:
                 f.write(f"{sitting_date_text} {title_text} visited before!\n")
             return
@@ -111,7 +110,7 @@ class Parliament:
                         "name": None,
                         "speech": text
                     }))
-                self.record(sitting_date_text, title_text, self.driver.current_url, path)
+                self.db.save_record(sitting_date_text, title_text, self.driver.current_url, path)
             else:
                 speaker_starts, speaker_ends = list(zip(*speaker_loc))
                 speech_text_starts = speaker_ends[:]
@@ -128,25 +127,13 @@ class Parliament:
                 ]}
                 with open(f"{path}", "w", encoding="utf-8") as f:
                     f.write(json.dumps(speeches))
-                self.record(sitting_date_text, title_text, self.driver.current_url, path)
+                self.db.save_record(sitting_date_text, title_text, self.driver.current_url, path)
         except Exception as e:
             with open("errors.log", "a", encoding="utf-8") as f:
                 f.write(f"{sitting_date_text} {title_text} {self.driver.current_url} {path}: {str(e)}\n")
 
         self.driver.close()
         self.driver.switch_to.window(search_results)
-
-    def record(self, date, title, url, path):
-        connection = sqlite3.connect('parliament.db', isolation_level=None)
-        cursor = connection.cursor()
-        cursor.execute(f"INSERT INTO parliament VALUES (?,?,?,?)", (date, title, url, path))
-
-    def debate_visited(self, date, title):
-        connection = sqlite3.connect('parliament.db', isolation_level=None)
-        cursor = connection.cursor()
-        rows = cursor.execute(f"SELECT * FROM parliament WHERE date = ? AND title = ?", (date, title))
-        visited = len(rows.fetchall()) > 0
-        return visited
     
     def scroll_to_bot(self):
         self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
