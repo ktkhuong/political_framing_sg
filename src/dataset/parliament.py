@@ -129,7 +129,7 @@ class Parliament:
                 self.db.save_record(sitting_date_text, title_text, self.driver.current_url, path)
         except Exception as e:
             with open("errors.log", "a", encoding="utf-8") as f:
-                f.write(f"{sitting_date_text} {title_text} {self.driver.current_url} {path}: {str(e)}\n")
+                f.write(f"{self.driver.current_url} {path}: {str(e)}\n")
 
         self.driver.close()
         self.driver.switch_to.window(search_results)
