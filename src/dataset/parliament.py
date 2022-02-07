@@ -14,7 +14,6 @@ import os
 import getopt, sys
 import re
 import json
-import sqlite3
 
 class Parliament:
     def __init__(self, path: str, driver: webdriver.Chrome) -> None:

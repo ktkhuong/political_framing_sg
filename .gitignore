@@ -4,4 +4,5 @@
 *.pdf
 *.db
 *.txt
+*.mp3
 src/dataset/profile/*
