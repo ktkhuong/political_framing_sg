@@ -1,7 +1,5 @@
 import sqlite3
 
-from numpy import void
-
 class Database:
     def __init__(self, database, table):
         self.database = database
@@ -10,7 +8,7 @@ class Database:
         cursor = connection.cursor()
         cursor.execute(f"CREATE TABLE IF NOT EXISTS {table} (date TEXT, title TEXT, url TEXT, path TEXT)")
 
-    def save_record(self, date, title, url, path) -> void:
+    def save_record(self, date, title, url, path):
         connection = sqlite3.connect(self.database, isolation_level=None)
         cursor = connection.cursor()
         cursor.execute(f"INSERT INTO {self.table} VALUES (?,?,?,?)", (date, title, url, path))
