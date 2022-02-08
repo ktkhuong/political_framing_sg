@@ -44,90 +44,101 @@ def open_link_in_tab(driver, link):
     actions.click(link)
     actions.perform()
 
-def main():
-    from_page = ''
-    to_page = ''
+def scrap_page(driver):
+    db = Database('newnaratif.db', 'newnaratif')
+    if os.path.exists("newnaratlif") is False:
+        os.makedirs("newnaratlif")
+
+    url = driver.current_url
+    match = re.search(r".com/.*/$", url)
+    filename = match.group()[5:-1]
+
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "f:t:")
+        date = driver.find_element(By.CSS_SELECTOR, "time[class='entry-date published']")
+        title = driver.find_element(By.CSS_SELECTOR, "header[class='entry-header']").find_element(By.TAG_NAME, 'h1')
+        main = driver.find_element(By.ID, "main")
+        category = main.find_element(By.TAG_NAME, "header").find_element(By.TAG_NAME, "a")
+        if category.text.lower() == "podcast":
+            iframes = WebDriverWait(driver, 30).until(EC.presence_of_all_elements_located((By.TAG_NAME, 'iframe')))
+            iframe = iframes[-1]
+            driver.execute_script("arguments[0].scrollIntoView();", iframe)
+            driver.switch_to.frame(iframe)
+            sleep(1)
+            WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.TAG_NAME, 'button')))
+            audio = driver.find_element(By.TAG_NAME, 'audio')
+            match = re.search(r"/https.*cloudfront.*mp3$", audio.get_attribute("src"))
+            audio_link = unquote(match.group())[1:]
+            driver.switch_to.default_content()
+            urlretrieve(audio_link, f"newnaratlif\\{filename}.mp3", cbk)
+            db.save_record(date.text, title.text, url, f"newnaratlif\\{filename}.mp3")
+        else:
+            driver.execute_script("""
+                document.querySelectorAll("blockquote").forEach((element) => {
+                    element.remove();
+                });
+                document.querySelector("div[class='entry-byline']")?.remove();
+            """)
+            data = main.find_element(By.CSS_SELECTOR, "div[class='entry-content']")
+            with open(f"newnaratlif\\{filename}.txt", "w") as f:
+                f.write(json.dumps({
+                    'title': title.text,
+                    'date': date.text,
+                    'content': data.text,
+                }))
+            db.save_record(date.text, title.text, url, f"newnaratlif\\{filename}.json")
+    except (StaleElementReferenceException, NoSuchElementException, IndexError, AttributeError) as e:
+            with open("errors.log", "a", encoding='utf-8') as f:
+                f.write(f"Error: {url} {str(e)}\n")
+
+def scrap_results(driver, url):        
+    driver.get(url)
+
+    articles = driver.find_element(By.ID, "main").find_elements(By.TAG_NAME, "article")
+    for article in articles:
+        link = article.find_element(By.CSS_SELECTOR, 'h2 > a')
+        driver.execute_script("arguments[0].scrollIntoView();", link)
+        url = link.get_attribute("href")
+        open_link_in_tab(driver, link)
+        sleep(1)
+
+        *_, article_window = driver.window_handles
+        driver.switch_to.window(article_window)
+        sleep(1)
+
+        scrap_page(driver)
+
+        home, *_ = driver.window_handles
+        driver.close()
+        driver.switch_to.window(home)
+        
+def main():
+    from_page = None
+    to_page = None
+    page = None
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "f:t:p:")
         for opt, arg in opts:
             if opt == '-f':
                 from_page = int(arg)
             elif opt == '-t':
                 to_page = int(arg)
+            elif opt == '-p':
+                page = arg
     except getopt.GetoptError as err:
         print(err)
         quit()
 
     driver = webdriver.Chrome(service=Service("chromedriver.exe"))
 
-    db = Database('newnaratif.db', 'newnaratif')
-    if os.path.exists("newnaratlif") is False:
-        os.makedirs("newnaratlif")
+    if page is None:
+        base_url = "https://newnaratif.com"
+        for i in range(from_page, to_page+1):
+            url = f"{base_url}/page/{i}/?s=Singapore"
+            scrap_results(driver, url)
+    else:
+        driver.get(page)
+        scrap_page(driver)
 
-    base_url = "https://newnaratif.com"
-    for i in range(from_page, to_page+1):
-        url = f"{base_url}/page/{i}/?s=Singapore"
-        driver.get(url)
-
-        articles = driver.find_element(By.ID, "main").find_elements(By.TAG_NAME, "article")
-        for article in articles:
-            link = article.find_element(By.CSS_SELECTOR, 'h2 > a')
-            driver.execute_script("arguments[0].scrollIntoView();", link)
-            title = link.text
-            url = link.get_attribute("href")
-            open_link_in_tab(driver, link)
-            sleep(1)
-
-            *_, article_window = driver.window_handles
-            driver.switch_to.window(article_window)
-            sleep(1)
-            url = driver.current_url
-            match = re.search(r".com/.*/$", url)
-            filename = match.group()[5:-1]
-
-            try:
-                date = driver.find_element(By.CSS_SELECTOR, "time[class='entry-date published']")
-                main = driver.find_element(By.ID, "main")
-                category = main.find_element(By.TAG_NAME, "header").find_element(By.TAG_NAME, "a")
-                if category.text.lower() == "podcast":
-                    iframes = main.find_elements(By.TAG_NAME, "iframe")
-                    iframe = iframes[-1]
-                    driver.execute_script("arguments[0].scrollIntoView();", iframe)
-                    driver.switch_to.frame(iframe)
-                    sleep(1)
-                    audio = WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.TAG_NAME, 'audio')))
-                    match = re.search(r"/https.*cloudfront.*mp3$", audio.get_attribute("src"))
-                    audio_link = unquote(match.group())[1:]
-                    driver.switch_to.default_content()
-                    urlretrieve(audio_link, f"newnaratlif\\{filename}.mp3", cbk)
-                    db.save_record(date.text, title, url, f"newnaratlif\\{filename}.mp3")
-                else:
-                    driver.execute_script("""
-                        document.querySelectorAll("blockquote").forEach((element) => {
-                            element.remove();
-                        });
-                        document.querySelector("div[class='entry-byline']")?.remove();
-                    """)
-                    data = main.find_element(By.CSS_SELECTOR, "div[class='entry-content']")
-                    with open(f"newnaratlif\\{filename}.txt", "w") as f:
-                        f.write(json.dumps({
-                            'title': title,
-                            'date': date.text,
-                            'content': data.text,
-                        }))
-                    db.save_record(date.text, title, url, f"newnaratlif\\{filename}.json")
-
-                home, *_ = driver.window_handles
-                driver.close()
-                driver.switch_to.window(home)
-            except (StaleElementReferenceException, NoSuchElementException, IndexError, AttributeError) as e:
-                """ with open("errors.log", "a", encoding='utf-8') as f:
-                    f.write(f"Error: {url} {str(e)}") """
-                print(str(e))
-                home, *_ = driver.window_handles
-                driver.close()
-                driver.switch_to.window(home)
-    
     driver.close()
 
 if __name__ == "__main__":
