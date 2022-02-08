@@ -9,6 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
 from selenium.webdriver.chrome.options import Options
+from database import Database
 import re
 import json
 import os
@@ -39,6 +40,8 @@ def main():
     chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\dataset\\profile')
 
     driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=chrome_options)
+
+    db = Database('theindependent.db', 'theindependent')
 
     base_url = "https://theindependent.sg/news/singapore-news"
     for i in range(from_page, to_page+1):
@@ -78,12 +81,16 @@ def main():
                 date = driver.find_element(By.CSS_SELECTOR, "time[class='entry-date updated td-module-date']")
                 data = driver.find_element(By.XPATH, "//div[contains(@class, 'tdb_single_content')]")
                 filename = driver.current_url[26:-1]
-                with open(f"theindependent\\{filename}.txt", "w", encoding='utf-8') as f:
+                if os.path.exists("theindependent") is False:
+                    os.makedirs("theindependent")
+                path = f"theindependent\\{filename}.txt"
+                with open(path, "w", encoding='utf-8') as f:
                     f.write(json.dumps({
                         'title': title,
                         'date': date.text,
                         'content': data.text,
                     }))
+                    db.save_record(date.text, title, driver.current_url, path)
                 home, *_ = driver.window_handles
                 driver.close()
                 driver.switch_to.window(home)
