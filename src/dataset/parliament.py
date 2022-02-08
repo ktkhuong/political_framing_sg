@@ -61,7 +61,7 @@ class Parliament:
         title_text = title_link.text
         sitting_date_text = date_em.text[14:-1] # example: Sitting Date: 24-1-1968,
 
-        if self.debate_visited(sitting_date_text, title_text):
+        if self.db.record_exists(sitting_date_text, title_text):
             with open("errors.log", "a", encoding="utf-8") as f:
                 f.write(f"{sitting_date_text} {title_text} visited before!\n")
             return
