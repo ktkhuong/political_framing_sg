@@ -42,6 +42,8 @@ def main():
     driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=chrome_options)
 
     db = Database('theindependent.db', 'theindependent')
+    if os.path.exists("theindependent") is False:
+        os.makedirs("theindependent")
 
     base_url = "https://theindependent.sg/news/singapore-news"
     for i in range(from_page, to_page+1):
@@ -81,8 +83,6 @@ def main():
                 date = driver.find_element(By.CSS_SELECTOR, "time[class='entry-date updated td-module-date']")
                 data = driver.find_element(By.XPATH, "//div[contains(@class, 'tdb_single_content')]")
                 filename = driver.current_url[26:-1]
-                if os.path.exists("theindependent") is False:
-                    os.makedirs("theindependent")
                 path = f"theindependent\\{filename}.txt"
                 with open(path, "w", encoding='utf-8') as f:
                     f.write(json.dumps({
