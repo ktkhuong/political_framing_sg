@@ -59,12 +59,9 @@ class Parliament:
         title_link = title_row.find_element(By.TAG_NAME, "a")
         date_em, *_ = sitting_date_row.find_elements(By.TAG_NAME, "em")
         title_text = title_link.text
-        alnum = re.sub(r'[\\/*?:"<>|]', '', title_text)
         sitting_date_text = date_em.text[14:-1] # example: Sitting Date: 24-1-1968,
-        filename = f"{sitting_date_text} {alnum}.json"
 
-        path = f"{self.path}\\{filename}"
-        if self.db.record_exists(sitting_date_text, title_text):
+        if self.debate_visited(sitting_date_text, title_text):
             with open("errors.log", "a", encoding="utf-8") as f:
                 f.write(f"{sitting_date_text} {title_text} visited before!\n")
             return
@@ -75,6 +72,10 @@ class Parliament:
         sleep(0.5)
         *_, search_results, report = self.driver.window_handles
         self.driver.switch_to.window(report)
+
+        match = re.search(r"reportid=.*", self.driver.current_url)
+        id = match.group()[9:]
+        path = f"{self.path}\\{id}.json"
 
         try:
             content = WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
@@ -106,8 +107,12 @@ class Parliament:
             if (len(speaker_loc) == 0):
                 with open(f"{path}", "w", encoding="utf-8") as f:
                     f.write(json.dumps({
-                        "name": None,
-                        "speech": text
+                        "title": title_text,
+                        "date": sitting_date_text,
+                        "speeches": [{
+                            "name": None, 
+                            "speech": text
+                        }],                        
                     }))
                 self.db.save_record(sitting_date_text, title_text, self.driver.current_url, path)
             else:
@@ -195,4 +200,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-
