@@ -153,7 +153,7 @@ def click_at(element):
     actions.perform()
 
 def main():
-    parliament_number = ''
+    parliament_number = None
     try:
         opts, args = getopt.getopt(sys.argv[1:], "p:")
         for opt, arg in opts:
@@ -162,6 +162,8 @@ def main():
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         quit()
+
+    assert parliament_number != None, "Argument -p is required!"
 
     driver = webdriver.Chrome(service=Service("chromedriver.exe"))
     driver.get("https://sprs.parl.gov.sg/search/home")

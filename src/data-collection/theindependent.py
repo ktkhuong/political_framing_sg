@@ -23,8 +23,8 @@ def open_link_in_tab(driver, link):
     actions.perform()
 
 def main():
-    from_page = ''
-    to_page = ''
+    from_page = None
+    to_page = None
     try:
         opts, args = getopt.getopt(sys.argv[1:], "f:t:")
         for opt, arg in opts:
@@ -35,6 +35,9 @@ def main():
     except getopt.GetoptError as err:
         print(err)
         quit()
+
+    assert from_page != None, "Argument -f is required!"
+    assert to_page != None, "Argument -t is required!"
 
     chrome_options = Options()
     chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\dataset\\profile')
