@@ -10,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
 from selenium.webdriver.chrome.options import Options
 from database import Database
+from unidecode import unidecode
 import re
 import json
 import os
@@ -40,7 +41,7 @@ def main():
     assert to_page != None, "Argument -t is required!"
 
     chrome_options = Options()
-    chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\dataset\\profile')
+    chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\data-collection\\profile')
 
     driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=chrome_options)
 
@@ -75,7 +76,7 @@ def main():
 
             try:           
                 driver.execute_script("""
-                    document.querySelectorAll("blockquote,figure,iframe").forEach((element) => {
+                    document.querySelectorAll("figure,iframe,img").forEach((element) => {
                         element.remove();
                     });
                     document.querySelector("ul[class='sxc-follow-buttons']")?.remove();
@@ -85,13 +86,15 @@ def main():
                 """)
                 date = driver.find_element(By.CSS_SELECTOR, "time[class='entry-date updated td-module-date']")
                 data = driver.find_element(By.XPATH, "//div[contains(@class, 'tdb_single_content')]")
+                text = re.sub("Follow us on Social Media", "", data.text.strip(), flags=re.IGNORECASE)
+                text = text.replace("\n", " ")
                 filename = driver.current_url[26:-1]
-                path = f"theindependent\\{filename}.txt"
+                path = f"theindependent\\{filename}.json"
                 with open(path, "w", encoding='utf-8') as f:
                     f.write(json.dumps({
-                        'title': title,
+                        'title': unidecode(title),
                         'date': date.text,
-                        'content': data.text,
+                        'content': unidecode(text),
                     }))
                     db.save_record(date.text, title, driver.current_url, path)
                 home, *_ = driver.window_handles
@@ -108,4 +111,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
