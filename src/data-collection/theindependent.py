@@ -103,9 +103,9 @@ def main():
             except (StaleElementReferenceException, NoSuchElementException, IndexError) as e:
                 with open("errors.log", "a", encoding='utf-8') as f:
                     f.write(f"Error: {url} {str(e)}")
-                home, *_ = driver.window_handles
-                driver.close()
-                driver.switch_to.window(home)
+            home, *_ = driver.window_handles
+            driver.close()
+            driver.switch_to.window(home)
     
     driver.close()
 
