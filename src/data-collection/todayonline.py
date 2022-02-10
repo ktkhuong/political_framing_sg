@@ -9,15 +9,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
 from selenium.webdriver.chrome.options import Options
-from selenium_stealth import stealth
 from database import Database
-from unidecode import unidecode
 import re
 import json
 import os
 import getopt
 import sys
-import pandas as pd
 
 def open_link_in_tab(driver, link):
     actions = ActionChains(driver)
@@ -48,9 +45,10 @@ def main():
 
     db = Database('todayonline.db', 'todayonline')
 
-    chrome_options = Options()
-    chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\data-collection\\profile')
-    driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=chrome_options)
+    #chrome_options = Options()
+    #chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\data-collection\\profile')
+    #driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=chrome_options)
+    driver = webdriver.Chrome(service=Service("chromedriver.exe"))
 
     for url in urls[start:end]:
         driver.get(url)
