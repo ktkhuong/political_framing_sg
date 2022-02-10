@@ -42,6 +42,15 @@ python paliament.py -p <parliament number>
 
 Using different values of `-p` for many parallel processes allows us to shorten the amount of time needed to scrape all reports.
 
+## Nexis
+Online database of international news and business reports. It allows users to search and download up to 500 articles at one time. We are interested in Singapore news published by The Straits Times and Channel News Asia. To scrape this database, it is good to use Exeter VPN to access. 
+
+### Usage
+```py
+python nexis.py -s <starting article number>
+```
+`-s`: the article number from which many batches of 500 articles are downloaded
+
 ## The Independent
 > The Independent Singapore brings independent perspective on news and current affairs in Singapore. It is a platform owned and operated by journalists. Started on the 9th of August 2013, the news website brings in-depth perspective and analysis on current affairs, economics and politics in Singapore. 
 
@@ -93,7 +102,7 @@ python newnaratif.py -f <start page> -t <end page> -p <url>
 
 `-p`: the page url that is scraped. If this is specified, `-f` and `-t` are ignored.
 
-Similar to Parliament, for each report, we do the following:
+Similar to Parliament, for each article, we do the following:
 1. Remove irrelevent texts. 
 2. Save its title, date and speeches in a json format in `.\newnaratif`.
 3. Record its date, title, url and path in a SQLite database, `.\newnaratif.db`.
@@ -101,15 +110,41 @@ Similar to Parliament, for each report, we do the following:
 ## TR Emeritus
 > TR Emeritus (TRE, formerly Temasek Review Emeritus) is a socio-political blog and one of the alternative media that emerged in Singapore in the 2000s.
 
-Articles are organized in categories: "Chinese", "Columnists", "Editorial", "Elections", "Letters", "Opinion", "Snippets", and "Sports". We are NOT using "Chinese" and "Sports".
+Articles are organized in categories: "Chinese", "Columnists", "Editorial", "Elections", "Letters", "Opinion", "Snippets", and "Sports". We are NOT interested in "Chinese" and "Sports".
+
+Another thing to note is that the website limits access to articles that are 3 months and older for members only. The cost of membership is S$10/month.
 
 ### Usage
 ```py
-python tremeritus.py -f <start page> -t <end page> -p <url>
+python tremeritus.py -f <start page> -t <end page> -c <category>
 ```
+`-f`: the page number that scraping starts.
 
-Similar to Parliament, for each report, we do the following:
+`-t`: the page number that scraping ends, inclusive.
+
+`-c`: the category that will be scraped.
+
+Similar to Parliament, for each article, we do the following:
 1. Remove irrelevent texts. 
 2. Save its title, date and speeches in a json format in `.\tremeritus`.
 3. Record its date, title, url and path in a SQLite database, `.\tremeritus.db`.
 
+## TodayOnline
+> TODAY is a Singapore English-language digital news provider under Mediacorp, Singapore's largest media broadcaster and provider and the only terrestrial television broadcaster in the country
+Although TodayOnline has a search function, it only allows us to browse up to 67 pages of results which include articles of up to about 2 months old.
+Therefore, we are going to use Google to search for articles' URLs. After that, we are going to scrape each URL. We are interested in 2 sections, "Commentary" and "Big Read" in 10 years, from 2012-02-01 to 2022-02-01.
+
+Steps to use Google to search for articles:
+1. Go to "News" when searching for "Singapore site:www.todayonline.com/commentary" or "Singapore site:www.todayonline.com/big-read"
+2. Use "Tools" to set date range. Because Google only returns about 300 hits per search, we are going to divide 10-years period into many sub-periods of 7-days.
+3. Save the urls of each hit.
+
+Note that it is unavoidable that Google occasionally asks for Captcha, so it is necessary to monitor the process. Fortunately, it should not take too much time.
+
+### Usage
+```py
+python todayonline.py -s <start url> -e <end url>
+```
+`-s`: the index in `todayonline_links.txt` that scraping starts.
+
+`-e`: the index in `todayonline_links.txt` that scraping ends, inclusive.

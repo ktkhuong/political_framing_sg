@@ -22,7 +22,7 @@ import pandas as pd
 
 def count_files(direct):
     for root, dirs, files in os.walk(direct):
-        return len(list(f for f in files if f.endswith('.zip')))
+        return len(list(f for f in files if f.lower().endswith('.zip')))
 
 class file_has_been_downloaded(object):
     def __init__(self, dir, number):
@@ -49,6 +49,18 @@ def sign_in(driver: webdriver.Chrome):
     btn.click()
 
 def main():
+    start = None
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "s:")
+        for opt, arg in opts:
+            if opt == '-s':
+                start = int(arg)
+    except getopt.GetoptError as err:
+        print(err)  # will print something like "option -a not recognized"
+        quit()
+
+    assert start != None, "Argument -s is required!"
+
     chrome_options = Options()
     chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\data-collection\\profile')
     driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=chrome_options)
@@ -65,16 +77,16 @@ def main():
         driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource']").click()
         driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource'] + ul li").click()
         sleep(5)
-        for i in range(1,86467,500):
+        for i in range(start,86467,500):
             driver.find_element(By.CSS_SELECTOR, "#results-list-delivery-toolbar > div > ul:nth-child(1) > li.expandable > ul > li.lastUsed > button").click()
             sleep(1)
             input = driver.find_element(By.CSS_SELECTOR, "input[id='SelectedRange']")
             input.send_keys(f"{i}-{i+499}")
-            filename = driver.find_element(By.CSS_SELECTOR, "input[id='FileName']")
-            filename.clear()
-            filename.send_keys(f"{i}-{i+499}")
+            sleep(0.5)
             driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-            WebDriverWait(driver, 60*5).until(file_has_been_downloaded("C:\\Users\\ktkhu\\Downloads", count_files("C:\\Users\\ktkhu\\Downloads")))
+            WebDriverWait(driver, 60*10).until(file_has_been_downloaded("C:\\Users\\ktkhu\\Downloads", count_files("C:\\Users\\ktkhu\\Downloads")))
+            with open("nexis.log", "a") as f:
+                f.write(f"Finish: {i}-{i+499}\n")
 
     except TimeoutException as e:
         print("Cannot log in!")
