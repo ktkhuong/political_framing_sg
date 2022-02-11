@@ -79,7 +79,6 @@ def main():
         print(err)  # will print something like "option -a not recognized"
         quit()
 
-
     chrome_options = Options()
     chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\data-collection\\profile')
     driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=chrome_options)
@@ -116,7 +115,6 @@ def main():
         num_of_hits = driver.find_elements(By.CSS_SELECTOR, "ol[class='bisnexis-result-list'] li span[class='noappealwrapper']")[-1].text[:-1]
         num_of_hits = int(num_of_hits)
 
-
         for i in range(start, num_of_hits, length):
             download_btn = driver.find_element(By.XPATH, "//*[@id='results-list-delivery-toolbar']/div/ul[1]/li[4]/ul/li[3]/button")
             driver.execute_script("arguments[0].scrollIntoView();", download_btn)
@@ -129,7 +127,7 @@ def main():
             driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
             WebDriverWait(driver, 60*10).until(file_has_been_downloaded(DOWNLOAD_DIR, count_files(DOWNLOAD_DIR)))
             newest = newest_file(DOWNLOAD_DIR)
-            os.rename(newest, f"{DOWNLOAD_DIR}\\{ys.replace('/','-')} {ye.replace('/','-')} {i}-{i+length-1}.zip")
+            os.rename(newest, f"{DOWNLOAD_DIR}\\{ys.replace('/','-')} {ye.replace('/','-')} {i}-{de}.zip")
             with open("nexis.log", "a") as f:
                 f.write(f"Finish: {ys} {ye} {i}-{de}\n")
         sleep(30)
