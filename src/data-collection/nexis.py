@@ -20,9 +20,16 @@ import getopt
 import sys
 import pandas as pd
 
+DOWNLOAD_DIR = "C:\\Users\\ktkhu\\Downloads"
+
+def newest_file(direct):
+    files = [f"{direct}\\{x}" for x in os.listdir(direct) if x.lower().endswith('zip')]
+    newest = max(files , key = os.path.getctime)
+    return newest
+
 def count_files(direct):
     for root, dirs, files in os.walk(direct):
-        return len(list(f for f in files if f.lower().endswith('.zip')))
+        return len(list(f for f in files if f.lower().endswith('zip')))
 
 class file_has_been_downloaded(object):
     def __init__(self, dir, number):
@@ -30,6 +37,10 @@ class file_has_been_downloaded(object):
         self.number = number
 
     def __call__(self, driver):
+        """ chars = "/—\|" 
+        for char in chars:
+            sys.stdout.write('\r'+'loading...'+char)
+            sys.stdout.flush() """
         return count_files(self.dir) > self.number
 
 def open_link_in_tab(driver, link):
@@ -49,17 +60,25 @@ def sign_in(driver: webdriver.Chrome):
     btn.click()
 
 def main():
-    start = None
+    ys = None
+    ye = None
+    start = 1
+    length = 500
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "s:")
+        opts, args = getopt.getopt(sys.argv[1:], "s:e:n:l:")
         for opt, arg in opts:
             if opt == '-s':
+                ys = arg
+            if opt == '-e':
+                ye = arg
+            if opt == '-n':
                 start = int(arg)
+            if opt == '-l':
+                length = int(arg)
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         quit()
 
-    assert start != None, "Argument -s is required!"
 
     chrome_options = Options()
     chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\data-collection\\profile')
@@ -73,20 +92,47 @@ def main():
         search = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "textarea[id='searchTerms']")))
         search.send_keys("Singapore")
         driver.find_element(By.CSS_SELECTOR, "button[id='mainSearch']").click()
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#results-list-delivery-toolbar > div > ul:nth-child(1) > li.expandable > ul > li.lastUsed > button")))
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "results-list-delivery-toolbar")))
         driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource']").click()
-        driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource'] + ul li").click()
+        driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource'] + ul li").click() # Straits Times
         sleep(5)
-        for i in range(start,86467,500):
-            driver.find_element(By.CSS_SELECTOR, "#results-list-delivery-toolbar > div > ul:nth-child(1) > li.expandable > ul > li.lastUsed > button").click()
+        timeline = driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsearch'] ~ button")
+        timeline.click()
+        driver.execute_script("arguments[0].scrollIntoView();", timeline)
+        sleep(2)
+        year_start, year_end = driver.find_elements(By.CSS_SELECTOR, "button[id='podfiltersbuttonsearch'] ~ button + div input")
+        for i in range(10):
+            year_start.send_keys(Keys.BACK_SPACE)
+        year_start.send_keys(ys)
+        for i in range(10):
+            year_end.send_keys(Keys.BACK_SPACE)
+        year_end.send_keys(ye)
+        driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsearch'] ~ button + div button[class='save btn secondary']").click()
+        sleep(5)
+        nav_last_page = driver.find_elements(By.CSS_SELECTOR, "nav[class='pagination newdesign'] li")[-2]
+        driver.execute_script("arguments[0].scrollIntoView();", nav_last_page)
+        nav_last_page.click()
+        sleep(3)
+        num_of_hits = driver.find_elements(By.CSS_SELECTOR, "ol[class='bisnexis-result-list'] li span[class='noappealwrapper']")[-1].text[:-1]
+        num_of_hits = int(num_of_hits)
+
+
+        for i in range(start, num_of_hits, length):
+            download_btn = driver.find_element(By.XPATH, "//*[@id='results-list-delivery-toolbar']/div/ul[1]/li[4]/ul/li[3]/button")
+            driver.execute_script("arguments[0].scrollIntoView();", download_btn)
+            download_btn.click()
             sleep(1)
             input = driver.find_element(By.CSS_SELECTOR, "input[id='SelectedRange']")
-            input.send_keys(f"{i}-{i+499}")
+            de = num_of_hits if (i+length-1) > num_of_hits else (i+length-1)
+            input.send_keys(f"{i}-{de}")
             sleep(0.5)
             driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-            WebDriverWait(driver, 60*10).until(file_has_been_downloaded("C:\\Users\\ktkhu\\Downloads", count_files("C:\\Users\\ktkhu\\Downloads")))
+            WebDriverWait(driver, 60*10).until(file_has_been_downloaded(DOWNLOAD_DIR, count_files(DOWNLOAD_DIR)))
+            newest = newest_file(DOWNLOAD_DIR)
+            os.rename(newest, f"{DOWNLOAD_DIR}\\{ys.replace('/','-')} {ye.replace('/','-')} {i}-{i+length-1}.zip")
             with open("nexis.log", "a") as f:
-                f.write(f"Finish: {i}-{i+499}\n")
+                f.write(f"Finish: {ys} {ye} {i}-{de}\n")
+        sleep(30)
 
     except TimeoutException as e:
         print("Cannot log in!")
