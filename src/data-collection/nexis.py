@@ -37,11 +37,14 @@ class file_has_been_downloaded(object):
         self.number = number
 
     def __call__(self, driver):
-        """ chars = "/—\|" 
-        for char in chars:
-            sys.stdout.write('\r'+'loading...'+char)
-            sys.stdout.flush() """
         return count_files(self.dir) > self.number
+
+class filters_added(object):
+    def __init__(self, number):
+        self.number = number
+
+    def __call__(self, driver):
+        return len(driver.find_elements(By.CSS_SELECTOR, "ul[class='filters-used '] li")) > self.number
 
 def open_link_in_tab(driver, link):
     actions = ActionChains(driver)
@@ -94,12 +97,11 @@ def main():
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "results-list-delivery-toolbar")))
         driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource']").click()
         driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource'] + ul li").click() # Straits Times
-        sleep(5)
-        timeline = driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsearch'] ~ button")
+        #sleep(6)
+        WebDriverWait(driver, 30).until(filters_added(len(driver.find_elements(By.CSS_SELECTOR, "ul[class='filters-used '] li"))))
+        timeline = WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[id='podfiltersbuttonsearch'] ~ button")))
         timeline.click()
-        driver.execute_script("arguments[0].scrollIntoView();", timeline)
-        sleep(2)
-        year_start, year_end = driver.find_elements(By.CSS_SELECTOR, "button[id='podfiltersbuttonsearch'] ~ button + div input")
+        year_start, year_end = WebDriverWait(driver, 30).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "button[id='podfiltersbuttonsearch'] ~ button + div input")))
         for i in range(10):
             year_start.send_keys(Keys.BACK_SPACE)
         year_start.send_keys(ys)
@@ -119,7 +121,7 @@ def main():
             download_btn = driver.find_element(By.XPATH, "//*[@id='results-list-delivery-toolbar']/div/ul[1]/li[4]/ul/li[3]/button")
             driver.execute_script("arguments[0].scrollIntoView();", download_btn)
             download_btn.click()
-            sleep(1)
+            sleep(2)
             input = driver.find_element(By.CSS_SELECTOR, "input[id='SelectedRange']")
             de = num_of_hits if (i+length-1) > num_of_hits else (i+length-1)
             input.send_keys(f"{i}-{de}")
