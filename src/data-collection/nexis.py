@@ -10,9 +10,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
 from selenium.webdriver.chrome.options import Options
-from selenium_stealth import stealth
-from database import Database
-from unidecode import unidecode
 import re
 import json
 import os
@@ -20,6 +17,8 @@ import getopt
 import sys
 import pandas as pd
 
+STRAITS_TIMES = 'st'
+CNA = 'cna'
 DOWNLOAD_DIR = "C:\\Users\\ktkhu\\Downloads"
 
 def newest_file(direct):
@@ -52,14 +51,14 @@ def open_link_in_tab(driver, link):
     actions.click(link)
     actions.perform()
 
-def sign_in(driver: webdriver.Chrome):
+def sign_in(driver: webdriver.Chrome, username, password):
     WebDriverWait(driver, 30).until(EC.title_is("SSO (Login)"))
-    username = driver.find_element(By.ID, "IDToken1")
-    password = driver.find_element(By.ID, "IDToken2")
+    usr = driver.find_element(By.ID, "IDToken1")
+    pwd = driver.find_element(By.ID, "IDToken2")
     btn = driver.find_element(By.NAME, "Login.Submit")
     
-    username.send_keys("tk402")
-    password.send_keys("Ukw634uY0b")
+    usr.send_keys(username)
+    pwd.send_keys(password)
     btn.click()
 
 def main():
@@ -67,20 +66,28 @@ def main():
     ye = None
     start = 1
     length = 500
+    publication_name = STRAITS_TIMES
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "s:e:n:l:")
+        opts, args = getopt.getopt(sys.argv[1:], "s:e:n:l:p:")
         for opt, arg in opts:
             if opt == '-s':
                 ys = arg
-            if opt == '-e':
+            elif opt == '-e':
                 ye = arg
-            if opt == '-n':
+            elif opt == '-n':
                 start = int(arg)
-            if opt == '-l':
+            elif opt == '-l':
                 length = int(arg)
+            elif opt == '-p':
+                publication_name = arg
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         quit()
+
+    username = os.getenv("EXETER_USERNAME")
+    password = os.getenv("EXETER_PASSWORD")
+    assert username != None, "EXETER_USERNAME is not set as an environment variable!"
+    assert password != None, "EXETER_PASSWORD is not set as an environment variable!"
 
     chrome_options = Options()
     chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\data-collection\\profile')
@@ -90,14 +97,19 @@ def main():
     try:
         btn = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[id='signInIDPBtn']")))
         btn.click()
-        sign_in(driver)
+        sign_in(driver, username, password)
         search = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "textarea[id='searchTerms']")))
         search.send_keys("Singapore")
         driver.find_element(By.CSS_SELECTOR, "button[id='mainSearch']").click()
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "results-list-delivery-toolbar")))
         driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource']").click()
-        driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource'] + ul li").click() # Straits Times
-        #sleep(6)
+        if publication_name == STRAITS_TIMES:
+            driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource'] + ul li").click() 
+        else:
+            driver.find_element(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource'] + ul button").click()
+            WebDriverWait(driver, 30).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "button[id='podfiltersbuttonsource'] + ul li[class='overflow']")))
+            driver.find_elements(By.CSS_SELECTOR, "button[id='podfiltersbuttonsource'] + ul li")[6].click() 
+        
         WebDriverWait(driver, 30).until(filters_added(len(driver.find_elements(By.CSS_SELECTOR, "ul[class='filters-used '] li"))))
         timeline = WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[id='podfiltersbuttonsearch'] ~ button")))
         timeline.click()

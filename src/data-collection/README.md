@@ -1,6 +1,11 @@
 # Data Collection
 To collect data, we are going to use Selenium to do web-scaping.
 
+## Environment Variables
+Add 2 environment variables:
+* EXETER_USERNAME: your Exeter username, e.g., abc12
+* EXETER_PASSWORD: your Exeter password
+
 ## Selenium
 ### Install and import
 ```py
@@ -43,17 +48,18 @@ python paliament.py -p <parliament number>
 Using different values of `-p` for many parallel processes allows us to shorten the amount of time needed to scrape all reports.
 
 ## Nexis
-Online database of international news and business reports. It allows users to search and download up to 500 articles at one time. We are interested in Singapore news published by The Straits Times and Channel News Asia. To scrape this database, it is good to use Exeter VPN to access. 
+Online database of international news and business reports. It allows users to search and download up to 500 articles at one time. We are interested in Singapore news published by The Straits Times and Channel News Asia. 
 
 Note that Nexis allows us to download up to 30000 documents for any search result.
-
 ### Usage
 ```py
-python nexis.py -s <start day> -e <end day> -n <starting article number>
+python nexis.py -s <start day> -e <end day> -n <starting article number> -l <number of articles> -p <publication name>
 ```
 `-s`: the start day on which Nexis starts searching
 `-e`: the end day on which Nexis stops searching, inclusive
 `-n`: the article number from which many batches of 500 articles are downloaded, default to 1
+`-l`: the number of articles to download
+`-p`: name of the publication: `st` for `The Straits Times` and `cna` for `Channel News Asia`
 
 ## The Independent
 > The Independent Singapore brings independent perspective on news and current affairs in Singapore. It is a platform owned and operated by journalists. Started on the 9th of August 2013, the news website brings in-depth perspective and analysis on current affairs, economics and politics in Singapore. 
