@@ -11,7 +11,6 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException,
 from selenium.webdriver.chrome.options import Options
 from database import Database
 from unidecode import unidecode
-from urllib.parse import unquote
 import re
 import json
 import os
@@ -41,9 +40,7 @@ def main():
     assert start != None, "Argument -s is required!"
     assert end != None, "Argument -e is required!"
 
-    chrome_options = Options()
-    chrome_options.add_argument('user-data-dir=C:\\Users\\ktkhu\\Desktop\\Exeter\\ECMM451\\src\\data-collection\\profile')
-    driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=chrome_options)
+    driver = webdriver.Chrome(service=Service("chromedriver.exe"))
 
     base_url = "https://theindependent.sg/news/singapore-news"
     close_notification = False
