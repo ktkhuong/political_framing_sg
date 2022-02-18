@@ -139,7 +139,7 @@ def main():
             input.send_keys(f"{i}-{de}")
             sleep(0.5)
             driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-            WebDriverWait(driver, 60*10).until(file_has_been_downloaded(DOWNLOAD_DIR, count_files(DOWNLOAD_DIR)))
+            WebDriverWait(driver, 60*5).until(file_has_been_downloaded(DOWNLOAD_DIR, count_files(DOWNLOAD_DIR)))
             newest = newest_file(DOWNLOAD_DIR)
             os.rename(newest, f"{DOWNLOAD_DIR}\\{ys.replace('/','-')} {ye.replace('/','-')} {i}-{de}.zip")
             with open("nexis.log", "a") as f:
