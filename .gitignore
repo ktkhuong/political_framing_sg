@@ -5,6 +5,9 @@
 *.db
 *.txt
 *.mp3
-src/data-collection/profile/*
 *.wav
 *.zip
+*-checkpoint.ipynb
+
+
+src/data-collection/profile/*

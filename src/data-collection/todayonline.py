@@ -78,7 +78,7 @@ def search_google(section, start = 0):
                 links = driver.find_elements(By.CSS_SELECTOR, "div[id='rso'] g-card a")
                 hrefs = [link.get_attribute("href") for link in links]
                 n += len(hrefs)
-                with open(f"todayonline_links.txt", "a") as f:
+                with open(f"todayonline_urls.txt", "a") as f:
                     f.write("\n".join(hrefs))
                     f.write("\n")
                 
@@ -118,7 +118,11 @@ def main():
     search_google("commentary")
     search_google("big-read")
 
-    with open("todayonline_links.txt", "r") as f:
+    assert os.path.exists("todayonline_urls.txt"), "todayonline_urls.txt NOT found!"
+    assert start != None, "Argument -s is required!"
+    assert end != None, "Argument -e is required!"
+
+    with open("todayonline_urls.txt", "r") as f:
         txt = f.read()
         urls = [line.strip() for line in txt.splitlines() if line.strip()]
 
@@ -126,7 +130,7 @@ def main():
 
     driver = webdriver.Chrome(service=Service("chromedriver.exe"))
 
-    for url in urls[start:end]:
+    for url in urls[start:(end+1)]:
         driver.get(url)
 
         try:
