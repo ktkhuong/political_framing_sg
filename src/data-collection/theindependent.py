@@ -76,9 +76,11 @@ def main():
                 document.querySelector("p[class='p5']")?.remove();
                 document.querySelector("font[size='2']")?.remove();                
             """)
-            title = driver.find_element(By.CSS_SELECTOR, "h2[class='tdb-title-text']")
+            titles = driver.find_elements(By.CSS_SELECTOR, "h2[class='tdb-title-text']")
+            title = titles[0] if len(titles) > 0 else driver.find_element(By.CSS_SELECTOR, "h1[class='entry-title']")
             date = driver.find_element(By.CSS_SELECTOR, "time[class='entry-date updated td-module-date']")
-            data = driver.find_element(By.XPATH, "//div[contains(@class, 'tdb_single_content')]")
+            adata = driver.find_elements(By.CSS_SELECTOR, "div[class*='tdb_single_content']")
+            data = adata[0] if len(adata) > 0 else driver.find_element(By.CSS_SELECTOR, "div[class*='td-post-content']")
             text = re.sub("Follow us on Social Media", "", data.text.strip(), flags=re.IGNORECASE)
             text = text.replace("\n", " ")
             text = text[:text.find("/TISG")]
