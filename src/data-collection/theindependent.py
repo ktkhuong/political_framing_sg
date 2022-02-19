@@ -44,7 +44,7 @@ def main():
     assert os.path.exists("theindependent_urls.txt"), "theindependent_urls.txt NOT found!"
     assert start != None, "Argument -s is required!"
     assert end != None, "Argument -e is required!"
-    
+
     driver = webdriver.Chrome(service=Service("chromedriver.exe"))
     db = Database('theindependent.db', 'theindependent')
 
@@ -55,7 +55,12 @@ def main():
         txt = f.read()
         urls = [line.strip() for line in txt.splitlines() if line.strip()]
 
-    for url in urls[start:(end+1)]:
+    for url in urls[start:end]:
+        if db.record_exists(url):
+            with open("errors.log", "a", encoding="utf-8") as f:
+                f.write(f"{url} visited before!\n")
+            continue
+
         driver.get(url)
 
         try:
