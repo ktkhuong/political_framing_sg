@@ -14,7 +14,13 @@ class Database:
         cursor.execute(f"INSERT INTO {self.table} VALUES (?,?,?,?)", (date, title, url, path))
 
     def record_exists(self, date, title) -> bool:
-        connection = sqlite3.connect('parliament.db', isolation_level=None)
+        connection = sqlite3.connect(self.database, isolation_level=None)
         cursor = connection.cursor()
         rows = cursor.execute(f"SELECT * FROM {self.table} WHERE date = ? AND title = ?", (date, title))
+        return len(rows.fetchall()) > 0
+
+    def record_exists(self, url) -> bool:
+        connection = sqlite3.connect(self.database, isolation_level=None)
+        cursor = connection.cursor()
+        rows = cursor.execute(f"SELECT * FROM {self.table} WHERE url = ?", (url,))
         return len(rows.fetchall()) > 0
