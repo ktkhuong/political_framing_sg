@@ -21,14 +21,13 @@ STRAITS_TIMES = 'st'
 CNA = 'cna'
 DOWNLOAD_DIR = "C:\\Users\\ktkhu\\Downloads"
 
-def newest_file(direct):
-    files = [f"{direct}\\{x}" for x in os.listdir(direct) if x.lower().endswith('zip')]
+def newest_file(dir):
+    files = [f"{dir}\\{x}" for x in os.listdir(dir) if x.lower().endswith('zip')]
     newest = max(files , key = os.path.getctime)
     return newest
 
-def count_files(direct):
-    for root, dirs, files in os.walk(direct):
-        return len(list(f for f in files if f.lower().endswith('zip')))
+def count_files(dir):
+    return len([f for f in os.listdir(dir) if f.lower().endswith("zip")])
 
 class file_has_been_downloaded(object):
     def __init__(self, dir, number):
