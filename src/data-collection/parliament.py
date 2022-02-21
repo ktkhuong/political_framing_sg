@@ -78,6 +78,15 @@ class Parliament:
         path = f"{self.path}\\{id}.json"
 
         try:
+            section = ''
+            rows = WebDriverWait(self.driver, 30).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'table tr')))
+            for row in rows:
+                cells = row.find_elements(By.TAG_NAME, 'td')
+                if len(cells) == 2:
+                    info_type, info = cells
+                    if info_type.text.lower() == "section name:":
+                        section = info.text
+
             content = WebDriverWait(self.driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
             # remove noise text
             self.driver.execute_script("""
@@ -107,6 +116,7 @@ class Parliament:
             if (len(speaker_loc) == 0):
                 with open(f"{path}", "w", encoding="utf-8") as f:
                     f.write(json.dumps({
+                        "section": section,
                         "title": title_text,
                         "date": sitting_date_text,
                         "speeches": [{
