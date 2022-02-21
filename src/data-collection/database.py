@@ -19,7 +19,7 @@ class Database:
         rows = cursor.execute(f"SELECT * FROM {self.table} WHERE date = ? AND title = ?", (date, title))
         return len(rows.fetchall()) > 0
 
-    def record_exists(self, url) -> bool:
+    def url_exists(self, url) -> bool:
         connection = sqlite3.connect(self.database, isolation_level=None)
         cursor = connection.cursor()
         rows = cursor.execute(f"SELECT * FROM {self.table} WHERE url = ?", (url,))

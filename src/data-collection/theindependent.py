@@ -56,7 +56,7 @@ def main():
         urls = [line.strip() for line in txt.splitlines() if line.strip()]
 
     for url in urls[start:end]:
-        if db.record_exists(url):
+        if db.url_exists(url):
             with open("errors.log", "a", encoding="utf-8") as f:
                 f.write(f"{url} visited before!\n")
             continue

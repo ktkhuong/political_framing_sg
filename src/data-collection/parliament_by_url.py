@@ -18,7 +18,7 @@ def main():
     url = None
     parliament_number = None
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "u:")
+        opts, args = getopt.getopt(sys.argv[1:], "u:p:")
         for opt, arg in opts:
             if opt == '-u':
                 url = arg
@@ -38,6 +38,15 @@ def main():
     path = f"parliament\\{parliament_number}\\{id}.json"
     
     try:
+        section = ''
+        rows = WebDriverWait(driver, 30).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'table tr')))
+        for row in rows:
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            if len(cells) == 2:
+                info_type, info = cells
+                if info_type.text.lower() == "section name:":
+                    section = info.text
+
         content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
         meta_info = driver.find_elements(By.CSS_SELECTOR, "table[border='1'] tr tr")
         title_text = meta_info[6].text[6:].strip()
@@ -70,12 +79,14 @@ def main():
         if (len(speaker_loc) == 0):
             with open(f"{path}", "w", encoding="utf-8") as f:
                 f.write(json.dumps({
+                    "id": id,
+                    "section": section,
                     "title": title_text,
                     "date": sitting_date_text,
                     "speeches": [{
                         "name": None, 
                         "speech": text
-                    }],                        
+                    }],
                 }))
             db.save_record(sitting_date_text, title_text, driver.current_url, path)
         else:
@@ -84,6 +95,8 @@ def main():
             speech_text_ends = speaker_starts[1:] + (-1,)
             speeches_loc = list(zip(speaker_starts, speaker_ends, speech_text_starts, speech_text_ends))
             speeches = {
+                "id": id,
+                "section": section,
                 "title": title_text,
                 "date": sitting_date_text,
                 "speeches": [

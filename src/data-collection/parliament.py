@@ -110,19 +110,20 @@ class Parliament:
                 });
             """)
             text = content.text
-            text = "".join([re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) 
+            text = " ".join([re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) 
                                 for line in text.splitlines() if line.strip()])
             speaker_loc = [speaker.span() for speaker in re.finditer("#(.*?)#", text)]
             if (len(speaker_loc) == 0):
                 with open(f"{path}", "w", encoding="utf-8") as f:
                     f.write(json.dumps({
+                        "id": id,
                         "section": section,
                         "title": title_text,
                         "date": sitting_date_text,
                         "speeches": [{
-                            "name": None, 
+                            "name": '', 
                             "speech": text
-                        }],                        
+                        }],
                     }))
                 self.db.save_record(sitting_date_text, title_text, self.driver.current_url, path)
             else:
@@ -131,6 +132,8 @@ class Parliament:
                 speech_text_ends = speaker_starts[1:] + (-1,)
                 speeches_loc = list(zip(speaker_starts, speaker_ends, speech_text_starts, speech_text_ends))
                 speeches = {
+                    "id": id,
+                    "section": section,
                     "title": title_text,
                     "date": sitting_date_text,
                     "speeches": [
