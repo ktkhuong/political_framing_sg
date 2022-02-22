@@ -39,18 +39,21 @@ def main():
     
     try:
         section = ''
+        title_text = ''
+        sitting_date_text = ''
         rows = WebDriverWait(driver, 30).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'table tr')))
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, 'td')
             if len(cells) == 2:
                 info_type, info = cells
                 if info_type.text.lower() == "section name:":
-                    section = info.text
+                    section = info.text.strip()
+                if info_type.text.lower() == "title:":
+                    title_text = info.text.strip()
+                if info_type.text.lower() == "sitting date:":
+                    sitting_date_text = info.text.strip()
 
         content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
-        meta_info = driver.find_elements(By.CSS_SELECTOR, "table[border='1'] tr tr")
-        title_text = meta_info[6].text[6:].strip()
-        sitting_date_text = meta_info[4].text[13:].strip()
         # remove noise text
         driver.execute_script("""
             document.querySelector("table[border='1']")?.remove();
