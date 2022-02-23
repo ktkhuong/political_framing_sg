@@ -14,7 +14,13 @@ import getopt, sys
 import re
 import json
 
-def scrape(url):
+def scrape_by_id(id):
+    url = f"https://sprs.parl.gov.sg/search/topic?reportid={id}"
+    if not scrape_by_url(url):
+        url = f"https://sprs.parl.gov.sg/search/sprs3topic?reportid={id}"
+        scrape_by_url(url)
+
+def scrape_by_url(url):
     driver = webdriver.Chrome(service=Service("chromedriver.exe"))
     driver.get(url)
 
@@ -25,7 +31,7 @@ def scrape(url):
         title_text = ''
         sitting_date_text = ''
         parliament_number = ''
-        rows = WebDriverWait(driver, 30).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'table tr')))
+        rows = WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'table tr')))
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, 'td')
             if len(cells) == 2:
@@ -42,6 +48,9 @@ def scrape(url):
         match = re.search(r"reportid=.*", driver.current_url)
         id = match.group()[9:]
         path = f"parliament\\{parliament_number}\\{id}.json"
+
+        if not os.path.exists(f"parliament\\{parliament_number}"):
+            os.mkdir(f"parliament\\{parliament_number}")
 
         content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
         # remove noise text
@@ -92,33 +101,44 @@ def scrape(url):
                 "speeches": [
                 {
                     "name": text[name_start+1:name_end-1], 
-                    "speech": text[speech_text_start+1:(speech_text_end if speech_text_end != -1 else None)]
+                    "speech": text[speech_text_start:(speech_text_end if speech_text_end != -1 else None)]
                 } for (name_start, name_end, speech_text_start, speech_text_end) in speeches_loc
             ]}
             with open(f"{path}", "w", encoding="utf-8") as f:
                 f.write(json.dumps(speeches))
             db.save_record(sitting_date_text, title_text, driver.current_url, path)
+            return True
     except Exception as e:
         with open("errors.log", "a", encoding="utf-8") as f:
             f.write(f"{driver.current_url}: {str(e)}\n")
+            return False
 
 def main():
     urls_file = None
+    ids_file = None
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "f:")
+        opts, args = getopt.getopt(sys.argv[1:], "u:i:")
         for opt, arg in opts:
             if opt == '-u':
                 urls_file = arg
+            if opt == '-i':
+                ids_file = arg
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         quit()
 
-    assert urls_file != None, "-f is required!"
+    assert urls_file != None or ids_file != None, "-f or -i is required!"
 
-    with open(urls_file, "r") as f:
-        urls = f.readlines()
-        for url in urls:
-            scrape(url)
+    if urls_file:
+        with open(urls_file, "r") as f:
+            urls = f.readlines()
+            for url in urls:
+                scrape_by_url(url)
+    if ids_file:
+        with open(ids_file, "r") as f:
+            ids = f.readlines()
+            for id in ids:
+                scrape_by_id(id)
 
 if __name__ == "__main__":
     main()
