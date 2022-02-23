@@ -74,14 +74,10 @@ def scrape_by_url(driver, url):
         
         content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
         text = content.text
-        #text = " ".join([re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) 
-        #                    for line in text.splitlines() if line.strip()])
         lines = [re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) for line in text.splitlines() if line.strip()]
         lines = [re.sub(r"Column: \d+", "", line, flags=re.IGNORECASE) for line in lines]
         lines = [re.sub(r"\[.*speaker.*in the chair.*\]", "", line, flags=re.IGNORECASE) for line in lines]
-        def augment_with_hashes(match):
-            return f"#{match.group()}#"
-        lines = [re.sub(r"^.*:", augment_with_hashes, line, flags=re.IGNORECASE) for line in lines]
+        lines = [re.sub(r"^.*:", lambda m: f"#{m.group()}#", line, flags=re.IGNORECASE) for line in lines]
         text = " ".join(lines)
         speaker_loc = [speaker.span() for speaker in re.finditer("#(.*?)#", text)]
         if (len(speaker_loc) == 0):

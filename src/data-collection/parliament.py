@@ -10,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from time import sleep
 from database import Database
+from unidecode import unidecode
 import os
 import getopt, sys
 import re
@@ -95,34 +96,31 @@ class Parliament:
                 document.querySelectorAll("b,strong").forEach((element) => {
                     if (element.innerText.startsWith("Column: ")) {
                         element.remove();
-                    }
-                    else {
-                        element.innerText = "#" + element.innerText + "#";
-                    }
+                    }                
                 });
                 document.querySelectorAll("p[align='left']").forEach((element) => {
                     if (element.innerText.startsWith("Column: ")) {
                         element.remove();
                     }
                 });
-                document.querySelectorAll("div[align='center']").forEach((element) => {
-                    element.remove();
-                });
             """)
             text = content.text
-            text = " ".join([re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) 
-                                for line in text.splitlines() if line.strip()])
+            lines = [re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) for line in text.splitlines() if line.strip()]
+            lines = [re.sub(r"Column: \d+", "", line, flags=re.IGNORECASE) for line in lines]
+            lines = [re.sub(r"\[.*speaker.*in the chair.*\]", "", line, flags=re.IGNORECASE) for line in lines]
+            lines = [re.sub(r"^.*:", lambda m: f"#{m.group()}#", line, flags=re.IGNORECASE) for line in lines]
+            text = " ".join(lines)
             speaker_loc = [speaker.span() for speaker in re.finditer("#(.*?)#", text)]
             if (len(speaker_loc) == 0):
                 with open(f"{path}", "w", encoding="utf-8") as f:
                     f.write(json.dumps({
                         "id": id,
                         "section": section,
-                        "title": title_text,
+                        "title": unidecode(title_text.strip()),
                         "date": sitting_date_text,
                         "speeches": [{
                             "name": '', 
-                            "speech": text
+                            "speech": unidecode(text.strip())
                         }],
                     }))
                 self.db.save_record(sitting_date_text, title_text, self.driver.current_url, path)
@@ -134,12 +132,12 @@ class Parliament:
                 speeches = {
                     "id": id,
                     "section": section,
-                    "title": title_text,
+                    "title": unidecode(title_text.strip()),
                     "date": sitting_date_text,
                     "speeches": [
                     {
-                        "name": text[name_start+1:name_end-1], 
-                        "speech": text[speech_text_start+1:(speech_text_end if speech_text_end != -1 else None)]
+                        "name": unidecode(text[name_start+1:name_end-1]), 
+                        "speech": unidecode(text[speech_text_start:(speech_text_end if speech_text_end != -1 else None)].strip())
                     } for (name_start, name_end, speech_text_start, speech_text_end) in speeches_loc
                 ]}
                 with open(f"{path}", "w", encoding="utf-8") as f:
