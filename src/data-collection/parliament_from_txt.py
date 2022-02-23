@@ -10,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from time import sleep
 from database import Database
+from unidecode import unidecode
 import os
 import getopt, sys
 import re
@@ -25,9 +26,11 @@ def scrape_by_id(driver, id):
 def scrape_by_url(driver, url):
     driver.get(url)
 
-    db = Database('parliament.db', 'parliament')
-    
-    try:        
+    try:
+        content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
+        if content.text == "undefined":
+            return False
+
         section = ''
         title_text = ''
         sitting_date_text = ''
@@ -86,14 +89,13 @@ def scrape_by_url(driver, url):
                 f.write(json.dumps({
                     "id": id,
                     "section": section,
-                    "title": title_text,
+                    "title": unidecode(title_text.strip()),
                     "date": sitting_date_text,
                     "speeches": [{
                         "name": None, 
-                        "speech": text
+                        "speech": unidecode(text.strip())
                     }],
                 }))
-            db.save_record(sitting_date_text, title_text, driver.current_url, path)
             return True
         else:
             speaker_starts, speaker_ends = list(zip(*speaker_loc))
@@ -103,17 +105,16 @@ def scrape_by_url(driver, url):
             speeches = {
                 "id": id,
                 "section": section,
-                "title": title_text,
+                "title": unidecode(title_text.strip()),
                 "date": sitting_date_text,
                 "speeches": [
                 {
-                    "name": text[name_start+1:name_end-1], 
-                    "speech": text[speech_text_start:(speech_text_end if speech_text_end != -1 else None)]
+                    "name": unidecode(text[name_start+1:name_end-1].strip()), 
+                    "speech": unidecode(text[speech_text_start:(speech_text_end if speech_text_end != -1 else None)].strip())
                 } for (name_start, name_end, speech_text_start, speech_text_end) in speeches_loc
             ]}
             with open(f"{path}", "w", encoding="utf-8") as f:
                 f.write(json.dumps(speeches))
-            db.save_record(sitting_date_text, title_text, driver.current_url, path)
             return True
     except Exception as e:
         with open("errors.log", "a", encoding="utf-8") as f:
