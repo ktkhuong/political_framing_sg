@@ -18,6 +18,7 @@ import json
 def scrape_by_id(driver, id):
     url = f"https://sprs.parl.gov.sg/search/topic?reportid={id}"
     if not scrape_by_url(driver, url):
+        print("NOK:",id)
         url = f"https://sprs.parl.gov.sg/search/sprs3topic?reportid={id}"
         scrape_by_url(driver, url)
 
@@ -26,11 +27,7 @@ def scrape_by_url(driver, url):
 
     db = Database('parliament.db', 'parliament')
     
-    try:
-        content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
-        if content.text == "undefined":
-            return False
-
+    try:        
         section = ''
         title_text = ''
         sitting_date_text = ''
@@ -71,6 +68,8 @@ def scrape_by_url(driver, url):
                 }
             });
         """)
+        
+        content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
         text = content.text
         #text = " ".join([re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) 
         #                    for line in text.splitlines() if line.strip()])
@@ -95,6 +94,7 @@ def scrape_by_url(driver, url):
                     }],
                 }))
             db.save_record(sitting_date_text, title_text, driver.current_url, path)
+            return True
         else:
             speaker_starts, speaker_ends = list(zip(*speaker_loc))
             speech_text_starts = speaker_ends[:]
@@ -118,6 +118,7 @@ def scrape_by_url(driver, url):
     except Exception as e:
         with open("errors.log", "a", encoding="utf-8") as f:
             f.write(f"{driver.current_url}: {str(e)}\n")
+            print(e)
             return False
 
 def main():
