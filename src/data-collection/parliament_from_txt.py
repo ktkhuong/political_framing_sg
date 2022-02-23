@@ -146,12 +146,12 @@ def main():
 
     if urls_file:
         with open(urls_file, "r") as f:
-            urls = f.readlines()
+            urls = set([url.replace("\n","") for url in f.readlines()])
             for url in urls[start:(end if not end else None)]:
                 scrape_by_url(driver, url)
     if ids_file:
         with open(ids_file, "r") as f:
-            ids = f.readlines()
+            ids = set([id.replace("\n","") for id in f.readlines()])
             for id in ids[start:(end if not end else None)]:
                 scrape_by_id(driver, id)
 
