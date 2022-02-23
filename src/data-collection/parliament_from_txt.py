@@ -1,3 +1,4 @@
+from cmath import inf
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
@@ -14,14 +15,13 @@ import getopt, sys
 import re
 import json
 
-def scrape_by_id(id):
+def scrape_by_id(driver, id):
     url = f"https://sprs.parl.gov.sg/search/topic?reportid={id}"
-    if not scrape_by_url(url):
+    if not scrape_by_url(driver, url):
         url = f"https://sprs.parl.gov.sg/search/sprs3topic?reportid={id}"
-        scrape_by_url(url)
+        scrape_by_url(driver, url)
 
-def scrape_by_url(url):
-    driver = webdriver.Chrome(service=Service("chromedriver.exe"))
+def scrape_by_url(driver, url):
     driver.get(url)
 
     db = Database('parliament.db', 'parliament')
@@ -31,7 +31,7 @@ def scrape_by_url(url):
         title_text = ''
         sitting_date_text = ''
         parliament_number = ''
-        rows = WebDriverWait(driver, 5).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'table tr')))
+        rows = WebDriverWait(driver, 3).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'table tr')))
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, 'td')
             if len(cells) == 2:
@@ -61,9 +61,7 @@ def scrape_by_url(url):
                 if (element.innerText.startsWith("Column: ")) {
                     element.remove();
                 }
-                else {
-                    element.innerText = "#" + element.innerText + "#";
-                }
+                
             });
             document.querySelectorAll("p[align='left']").forEach((element) => {
                 if (element.innerText.startsWith("Column: ")) {
@@ -72,8 +70,15 @@ def scrape_by_url(url):
             });
         """)
         text = content.text
-        text = "".join([re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) 
-                            for line in text.splitlines() if line.strip()])
+        #text = " ".join([re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) 
+        #                    for line in text.splitlines() if line.strip()])
+        lines = [re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) for line in text.splitlines() if line.strip()]
+        lines = [re.sub(r"Column: \d+", "", line, flags=re.IGNORECASE) for line in lines]
+        lines = [re.sub(r"\[.*speaker.*in the chair.*\]", "", line, flags=re.IGNORECASE) for line in lines]
+        def augment_with_hash(match):
+            return f"#{match.group()}#"
+        lines = [re.sub(r"^.*:", augment_with_hash, line, flags=re.IGNORECASE) for line in lines]
+        text = " ".join(lines)
         speaker_loc = [speaker.span() for speaker in re.finditer("#(.*?)#", text)]
         if (len(speaker_loc) == 0):
             with open(f"{path}", "w", encoding="utf-8") as f:
@@ -116,29 +121,39 @@ def scrape_by_url(url):
 def main():
     urls_file = None
     ids_file = None
+    start = 0
+    end = None
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "u:i:")
+        opts, args = getopt.getopt(sys.argv[1:], "u:i:s:e:")
         for opt, arg in opts:
             if opt == '-u':
                 urls_file = arg
             if opt == '-i':
                 ids_file = arg
+            if opt == '-s':
+                start = int(arg)
+            if opt == '-e':
+                end = int(arg)
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         quit()
 
-    assert urls_file != None or ids_file != None, "-f or -i is required!"
+    assert urls_file != None or ids_file != None, "-u or -i is required!"
+
+    driver = webdriver.Chrome(service=Service("chromedriver.exe"))
 
     if urls_file:
         with open(urls_file, "r") as f:
             urls = f.readlines()
             for url in urls:
-                scrape_by_url(url)
+                scrape_by_url(driver, url)
     if ids_file:
         with open(ids_file, "r") as f:
             ids = f.readlines()
-            for id in ids:
-                scrape_by_id(id)
+            for id in ids[start:(end if not end else None)]:
+                scrape_by_id(driver, id)
+
+    driver.close()
 
 if __name__ == "__main__":
     main()
