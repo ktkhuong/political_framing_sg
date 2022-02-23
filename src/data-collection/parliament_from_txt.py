@@ -27,6 +27,10 @@ def scrape_by_url(driver, url):
     db = Database('parliament.db', 'parliament')
     
     try:
+        content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
+        if content.text == "undefined":
+            return False
+
         section = ''
         title_text = ''
         sitting_date_text = ''
@@ -52,7 +56,6 @@ def scrape_by_url(driver, url):
         if not os.path.exists(f"parliament\\{parliament_number}"):
             os.mkdir(f"parliament\\{parliament_number}")
 
-        content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
         # remove noise text
         driver.execute_script("""
             document.querySelector("table[border='1']")?.remove();
@@ -60,8 +63,7 @@ def scrape_by_url(driver, url):
             document.querySelectorAll("b,strong").forEach((element) => {
                 if (element.innerText.startsWith("Column: ")) {
                     element.remove();
-                }
-                
+                }                
             });
             document.querySelectorAll("p[align='left']").forEach((element) => {
                 if (element.innerText.startsWith("Column: ")) {
@@ -75,9 +77,9 @@ def scrape_by_url(driver, url):
         lines = [re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) for line in text.splitlines() if line.strip()]
         lines = [re.sub(r"Column: \d+", "", line, flags=re.IGNORECASE) for line in lines]
         lines = [re.sub(r"\[.*speaker.*in the chair.*\]", "", line, flags=re.IGNORECASE) for line in lines]
-        def augment_with_hash(match):
+        def augment_with_hashes(match):
             return f"#{match.group()}#"
-        lines = [re.sub(r"^.*:", augment_with_hash, line, flags=re.IGNORECASE) for line in lines]
+        lines = [re.sub(r"^.*:", augment_with_hashes, line, flags=re.IGNORECASE) for line in lines]
         text = " ".join(lines)
         speaker_loc = [speaker.span() for speaker in re.finditer("#(.*?)#", text)]
         if (len(speaker_loc) == 0):
@@ -145,7 +147,7 @@ def main():
     if urls_file:
         with open(urls_file, "r") as f:
             urls = f.readlines()
-            for url in urls:
+            for url in urls[start:(end if not end else None)]:
                 scrape_by_url(driver, url)
     if ids_file:
         with open(ids_file, "r") as f:
