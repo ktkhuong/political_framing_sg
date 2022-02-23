@@ -14,33 +14,17 @@ import getopt, sys
 import re
 import json
 
-def main():
-    url = None
-    parliament_number = None
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "u:p:")
-        for opt, arg in opts:
-            if opt == '-u':
-                url = arg
-            elif opt == '-p':
-                parliament_number = arg
-    except getopt.GetoptError as err:
-        print(err)  # will print something like "option -a not recognized"
-        quit()
-
+def scrape(url):
     driver = webdriver.Chrome(service=Service("chromedriver.exe"))
     driver.get(url)
 
     db = Database('parliament.db', 'parliament')
-
-    match = re.search(r"reportid=.*", driver.current_url)
-    id = match.group()[9:]
-    path = f"parliament\\{parliament_number}\\{id}.json"
     
     try:
         section = ''
         title_text = ''
         sitting_date_text = ''
+        parliament_number = ''
         rows = WebDriverWait(driver, 30).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'table tr')))
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, 'td')
@@ -52,6 +36,12 @@ def main():
                     title_text = info.text.strip()
                 if info_type.text.lower() == "sitting date:":
                     sitting_date_text = info.text.strip()
+                if info_type.text.lower() == "parliament no:":
+                    parliament_number = info.text.strip()
+
+        match = re.search(r"reportid=.*", driver.current_url)
+        id = match.group()[9:]
+        path = f"parliament\\{parliament_number}\\{id}.json"
 
         content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
         # remove noise text
@@ -70,9 +60,6 @@ def main():
                 if (element.innerText.startsWith("Column: ")) {
                     element.remove();
                 }
-            });
-            document.querySelectorAll("div[align='center']").forEach((element) => {
-                element.remove();
             });
         """)
         text = content.text
@@ -113,7 +100,25 @@ def main():
             db.save_record(sitting_date_text, title_text, driver.current_url, path)
     except Exception as e:
         with open("errors.log", "a", encoding="utf-8") as f:
-            f.write(f"{driver.current_url} {path}: {str(e)}\n")
+            f.write(f"{driver.current_url}: {str(e)}\n")
+
+def main():
+    urls_file = None
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "f:")
+        for opt, arg in opts:
+            if opt == '-u':
+                urls_file = arg
+    except getopt.GetoptError as err:
+        print(err)  # will print something like "option -a not recognized"
+        quit()
+
+    assert urls_file != None, "-f is required!"
+
+    with open(urls_file, "r") as f:
+        urls = f.readlines()
+        for url in urls:
+            scrape(url)
 
 if __name__ == "__main__":
     main()
