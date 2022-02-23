@@ -15,6 +15,7 @@ import os
 import getopt, sys
 import re
 import json
+from tqdm import tqdm
 
 def scrape_by_id(driver, id):
     url = f"https://sprs.parl.gov.sg/search/topic?reportid={id}"
@@ -63,7 +64,10 @@ def scrape_by_url(driver, url):
             document.querySelectorAll("b,strong").forEach((element) => {
                 if (element.innerText.startsWith("Column: ")) {
                     element.remove();
-                }                
+                }
+                else if (element.innerText.length <= 255){
+                    element.innerText = "#" + element.innerText + "#";
+                }            
             });
             document.querySelectorAll("p[align='left']").forEach((element) => {
                 if (element.innerText.startsWith("Column: ")) {
@@ -75,10 +79,15 @@ def scrape_by_url(driver, url):
         content = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="showTopic"]/div')))
         text = content.text
         lines = [re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) for line in text.splitlines() if line.strip()]
-        lines = [re.sub(r"Column: \d+", "", line, flags=re.IGNORECASE) for line in lines]
-        lines = [re.sub(r"\[.*speaker.*in the chair.*\]", "", line, flags=re.IGNORECASE) for line in lines]
-        lines = [re.sub(r"^.*:", lambda m: f"#{m.group()}#", line, flags=re.IGNORECASE) for line in lines]
-        text = " ".join(lines)
+        lines = [re.sub(r"Column: \d+", "", line, flags=re.IGNORECASE) for line in lines if line.strip()]
+        lines = [re.sub(r"\[.*in the chair.*\]", "", line, flags=re.IGNORECASE) for line in lines]
+        lines = [re.sub(r"^.*?#", "#", line, flags=re.IGNORECASE) for line in lines]
+        """ def augment_with_hashes(match):
+            m = match.group()
+            return f"#{m}#" if len(m) < 128 else m
+        lines = [re.sub(r"^.*?:", augment_with_hashes, line, flags=re.IGNORECASE) for line in lines]
+        print(lines) """
+        text = " ".join([line.strip() for line in lines if line.strip()])
         speaker_loc = [speaker.span() for speaker in re.finditer("#(.*?)#", text)]
         if (len(speaker_loc) == 0):
             with open(f"{path}", "w", encoding="utf-8") as f:
@@ -145,12 +154,12 @@ def main():
     if urls_file:
         with open(urls_file, "r") as f:
             urls = [url.replace("\n","") for url in f.readlines()]
-            for url in urls[start:(end if not end else None)]:
+            for url in tqdm(urls[start:(end if end else None)]):
                 scrape_by_url(driver, url)
     if ids_file:
         with open(ids_file, "r") as f:
             ids = [id.replace("\n","") for id in f.readlines()]
-            for id in ids[start:(end if not end else None)]:
+            for id in tqdm(ids[start:(end if end else None)]):
                 scrape_by_id(driver, id)
 
     driver.close()
