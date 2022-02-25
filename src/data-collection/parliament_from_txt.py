@@ -82,11 +82,6 @@ def scrape_by_url(driver, url):
         lines = [re.sub(r"Column: \d+", "", line, flags=re.IGNORECASE) for line in lines if line.strip()]
         lines = [re.sub(r"\[.*in the chair.*\]", "", line, flags=re.IGNORECASE) for line in lines]
         lines = [re.sub(r"^.*?#", "#", line, flags=re.IGNORECASE) for line in lines]
-        """ def augment_with_hashes(match):
-            m = match.group()
-            return f"#{m}#" if len(m) < 128 else m
-        lines = [re.sub(r"^.*?:", augment_with_hashes, line, flags=re.IGNORECASE) for line in lines]
-        print(lines) """
         text = " ".join([line.strip() for line in lines if line.strip()])
         speaker_loc = [speaker.span() for speaker in re.finditer("#(.*?)#", text)]
         if (len(speaker_loc) == 0):
