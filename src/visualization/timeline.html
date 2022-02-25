@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Timeline</title>
+    <link title="timeline-styles" rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
+    <script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>
+    <script src="eras.js"></script>
+    <script src="events.js"></script>
+</head>
+
+<body>
+    <div id='timeline-embed' style="width: 100%; height: 600px"></div>
+    <script type="text/javascript">
+        timeline = new TL.Timeline('timeline-embed', {
+            events: events.slice(0,100),
+            eras: eras
+        });
+        timeline.on("dataloaded", function(data) {
+            //timeline.add(events[100]);
+        });
+        timeline.on("added", function(data) {
+           console.log("added");
+        });
+        timeline.add(events[100]);
+    </script>
+    <script lang="css"></script>
+</body>
+
+</html>
