@@ -1,5 +1,5 @@
 const eras = [
-    {
+/*     {
         "start_date": {"day": 8, "month": 12, "year": 1965},
         "end_date": {"day": 8, "month": 2, "year": 1968},
         "text": {"headline": "1st Parliament"}
@@ -63,7 +63,7 @@ const eras = [
         "start_date": {"day": 15, "month": 1, "year": 2016},
         "end_date": {"day": 23, "month": 6, "year": 2020},
         "text": {"headline": "13th Parliament"}
-    },
+    }, */
     {
         "start_date": {"day": 24, "month": 8, "year": 2020},
         "end_date": {"day": 24, "month": 8, "year": 2025},
