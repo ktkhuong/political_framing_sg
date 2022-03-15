@@ -115,12 +115,10 @@ def scrape_by_url(driver, url):
             ]}
             with open(f"{path}", "w", encoding="utf-8") as f:
                 f.write(json.dumps(speeches))
-                print(path)
             return True
     except Exception as e:
         with open("errors.log", "a", encoding="utf-8") as f:
             f.write(f"{driver.current_url}: {str(e)}\n")
-            print(e)
             return False
 
 def main():
