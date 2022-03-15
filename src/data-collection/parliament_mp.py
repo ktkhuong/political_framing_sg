@@ -42,12 +42,6 @@ def main():
     for option in current_mp.options:
         with open("parliament_mp.txt", "a") as f:
             f.write(option.text + "\n")
-    
-    advance_search_section.find_element(By.CSS_SELECTOR, "input[id='byMP']").click()
-    mp = Select(advance_search_section.find_element(By.TAG_NAME, "select"))
-    for option in mp.options:
-        with open("parliament_mp.txt", "a") as f:
-            f.write(option.text + "\n")
 
     advance_search_section.find_element(By.CSS_SELECTOR, "input[id='byFMP']").click()
     mp = Select(advance_search_section.find_element(By.TAG_NAME, "select"))

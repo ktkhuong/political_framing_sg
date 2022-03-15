@@ -20,7 +20,6 @@ from tqdm import tqdm
 def scrape_by_id(driver, id):
     url = f"https://sprs.parl.gov.sg/search/topic?reportid={id}"
     if not scrape_by_url(driver, url):
-        print("NOK:",id)
         url = f"https://sprs.parl.gov.sg/search/sprs3topic?reportid={id}"
         scrape_by_url(driver, url)
 
@@ -65,8 +64,8 @@ def scrape_by_url(driver, url):
                 if (element.innerText.startsWith("Column: ")) {
                     element.remove();
                 }
-                else if (element.innerText.length <= 255){
-                    element.innerText = "#" + element.innerText + "#";
+                else if (element.innerText.length <= 190 && element.innerText.length > 1){
+                    element.innerText = "{" + element.innerText + "}";
                 }            
             });
             document.querySelectorAll("p[align='left']").forEach((element) => {
@@ -80,10 +79,11 @@ def scrape_by_url(driver, url):
         text = content.text
         lines = [re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) for line in text.splitlines() if line.strip()]
         lines = [re.sub(r"Column: \d+", "", line, flags=re.IGNORECASE) for line in lines if line.strip()]
-        lines = [re.sub(r"\[.*in the chair.*\]", "", line, flags=re.IGNORECASE) for line in lines]
-        lines = [re.sub(r"^.*?#", "#", line, flags=re.IGNORECASE) for line in lines]
+
+        lines = [re.sub(r".*\[.*in the chair.*\].*", "", line, flags=re.IGNORECASE) for line in lines]
+        #lines = [re.sub(r"^.*?#", "#", line, flags=re.IGNORECASE) for line in lines]
         text = " ".join([line.strip() for line in lines if line.strip()])
-        speaker_loc = [speaker.span() for speaker in re.finditer("#(.*?)#", text)]
+        speaker_loc = [speaker.span() for speaker in re.finditer("{(.*?)}", text) if speaker.group() != r"{}"]
         if (len(speaker_loc) == 0):
             with open(f"{path}", "w", encoding="utf-8") as f:
                 f.write(json.dumps({
@@ -115,6 +115,7 @@ def scrape_by_url(driver, url):
             ]}
             with open(f"{path}", "w", encoding="utf-8") as f:
                 f.write(json.dumps(speeches))
+                print(path)
             return True
     except Exception as e:
         with open("errors.log", "a", encoding="utf-8") as f:
