@@ -64,7 +64,7 @@ def scrape_by_url(driver, url):
                 if (element.innerText.startsWith("Column: ")) {
                     element.remove();
                 }
-                else if (element.innerText.length <= 190 && element.innerText.length > 5){
+                else if (element.innerText.length <= 190 && element.innerText.length > 6){
                     element.innerText = "{" + element.innerText + "}";
                 }            
             });
@@ -80,7 +80,11 @@ def scrape_by_url(driver, url):
         lines = [re.sub(r"^1[0-2]|0?[1-9].[0-5]?[0-9] ?[ap].m.$", "", line.strip(), flags=re.IGNORECASE) for line in text.splitlines() if line.strip()]
         lines = [re.sub(r"Column: \d+", "", line, flags=re.IGNORECASE) for line in lines if line.strip()]
         lines = [re.sub(r".*\[.*in the chair.*\].*", "", line, flags=re.IGNORECASE) for line in lines]
-        lines = [re.sub(r"(?!^){(.*?)}", lambda x: x.group()[1:-1], line, flags=re.IGNORECASE) for line in lines]
+        lines = [re.sub(r"^[0-9]*", "", line, flags=re.IGNORECASE) for line in lines]
+        lines = [line.strip() for line in lines]
+        lines = [re.sub(r"^{[0-9 ]*}", lambda x: "", line, flags=re.IGNORECASE) for line in lines]
+        lines = [re.sub(r"{[0-9, ]*}", lambda x: x.group()[1:-1], line, flags=re.IGNORECASE) for line in lines]     
+        lines = [re.sub(r"^{.*}", lambda x: "{"+x.group()[1:-1].replace("{","").replace("}","")+"}", line, flags=re.IGNORECASE) for line in lines]
         text = " ".join([line.strip() for line in lines if line.strip()])
         speaker_loc = [speaker.span() for speaker in re.finditer("{(.*?)}", text) if speaker.group() != r"{}"]
         if (len(speaker_loc) == 0):
