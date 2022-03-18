@@ -13,7 +13,7 @@ def single_split(audio, from_min, to_min, split_filename, output_dir):
 def multiple_split(audio, min_per_split, filename, output_dir):
     total_mins = math.ceil(audio.duration_seconds / 60)
     for i in tqdm(range(0, total_mins, min_per_split)):
-        split_fn = str(i) + '_' + filename
+        split_fn = str(i) + ".wav"
         single_split(audio, i, i+min_per_split, split_fn, output_dir)
 
 def main():

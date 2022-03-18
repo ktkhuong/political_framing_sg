@@ -7,7 +7,9 @@
 *.mp3
 *.wav
 *.zip
+*.csv
 *-checkpoint.ipynb
-
+*-checkpoint.py
+*-checkpoint.csv
 
 src/data-collection/profile/*
