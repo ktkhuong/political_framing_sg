@@ -11,5 +11,6 @@
 *-checkpoint.ipynb
 *-checkpoint.py
 *-checkpoint.csv
-
+*.cfg
+*.spacy
 src/data-collection/profile/*
