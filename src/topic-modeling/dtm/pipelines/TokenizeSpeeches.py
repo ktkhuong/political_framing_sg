@@ -3,6 +3,9 @@ from nltk.corpus import stopwords
 from nltk import tokenize
 from gensim.utils import simple_preprocess
 import spacy
+from tqdm import tqdm
+from sklearn.base import BaseEstimator, TransformerMixin
+
 ###################################
 #### stop words ####
 ###################################
@@ -17,9 +20,18 @@ extra_stop_words = {
 }
 stop_words = stop_words.union(extra_stop_words)
 
-class Tokenizer:
-    def __init__(self) -> None:
+class TokenizeSpeeches(BaseEstimator, TransformerMixin):
+    def __init__(self, col):
+        self.col = col
         self.nlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        df = X
+        df["tokenized_speech"] = self.tokenize(df[self.col].values)        
+        return df
 
     def tokenize(self, documents, batch_size=100, n_process=4):
         docs = [" ".join(
@@ -31,7 +43,7 @@ class Tokenizer:
                 )
             )
         ) for doc in documents]
-        lemmatized = [" ".join([token.lemma_ for token in doc]) for doc in self.nlp.pipe(docs, batch_size=batch_size, n_process=n_process)]
+        lemmatized = [" ".join([token.lemma_ for token in doc]) for doc in tqdm(self.nlp.pipe(docs, batch_size=batch_size, n_process=n_process), total=len(docs))]
         return lemmatized
 
     def doc2sent(self, doc):
@@ -47,3 +59,5 @@ class Tokenizer:
     def lemmatize(self, tokens):
         doc = self.nlp(" ".join(tokens))
         return [token.lemma_ for token in doc]
+
+    
