@@ -13,4 +13,10 @@
 *-checkpoint.csv
 *.cfg
 *.spacy
+
 src/data-collection/profile/*
+src/data-cleaning/ner/models
+**/.env/*
+**/nmf/*
+
+!requirements.txt

@@ -10,9 +10,9 @@ class ReadDataset(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        #logger = logging.getLogger(__name__)
-        #logger.info(f"Read dataset")
+        logger = logging.getLogger(__name__)
 
         df = pd.read_csv(self.path, usecols=["date", "quarter", "section", "title", "member", "preprocessed_speech"])
         df['date'] = pd.to_datetime(df['date'])
+        logger.info(f"Dataset shape: {df.shape}")
         return df

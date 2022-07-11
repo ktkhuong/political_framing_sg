@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 import logging
 
-class FilterDataFrameByDates(BaseEstimator, TransformerMixin):
+class FilterAndSortDataFrameByDates(BaseEstimator, TransformerMixin):
     def __init__(self, start_date, end_date):
         self.start_date = start_date
         self.end_date = end_date

@@ -1,4 +1,6 @@
 import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.pipeline import Pipeline
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import normalize
@@ -6,7 +8,6 @@ from itertools import combinations
 from scipy import spatial
 from gensim.models import Word2Vec
 import pickle
-from glove import Glove
 import logging
 
 class Topic:
@@ -24,7 +25,7 @@ class Topic:
         top_indices = self.top_term_indices(n_top)
         return [self.vocab[i] for i in top_indices]
 
-    def coherence_w2v(self, w2v):
+    def coherence(self, w2v: Word2Vec):
         top_terms = self.top_terms()
         total_distance = 0
         count = 0
@@ -33,46 +34,15 @@ class Topic:
             count += 1
         return float(total_distance) / (count)
 
-    def coherence_glove(self, glove):
-        top_terms = self.top_terms()
-        total_distance = 0
-        count = 0
-        for wi, wj in combinations(top_terms, 2):
-            assert wi in glove.wv.keys(), f"{wi} NOT found in glove"
-            assert wj in glove.wv.keys(), f"{wj} NOT found in glove"
-            total_distance += 1 - spatial.distance.cosine(glove.wv[wi], glove.wv[wj])
-            count += 1
-        return float(total_distance) / (count)
+class TimeWindow:
+    def __init__(self, id, tfidf_matrix):
+        self.id = id
+        self.tfidf_matrix = tfidf_matrix
+        self.topics = []
 
-class TwoLayersNMF:
+class TwoLayersNMF(BaseEstimator, TransformerMixin):
     N_COHERENCE_WORDS = 10
     N_DYNAMIC_TOP_TERMS = 20
-
-    @classmethod
-    def by_w2v(cls, tokenized):
-        instance = cls(tokenized)
-        instance.word_embeddings = TwoLayersNMF.train_word2vec
-        instance.get_coherence = Topic.coherence_w2v
-        return instance
-
-    @classmethod
-    def by_glove(cls, tokenized):
-        raise NotImplementedError()
-        """
-        instance = cls(tokenized)
-        instance.word_embeddings = TwoLayersNMF.train_glove
-        instance.get_coherence = Topic.coherence_glove
-        return instance
-        """
-
-    def __init__(self, tokenized):
-        tfidf = self.train_tfidf(tokenized)
-        #self.index_to_word = vocab
-        #self.word_to_index = {w: i for i, w in enumerate(vocab)}
-
-        #self.n_words = len(vocab)
-        self.window_topics = []
-        self.dynamic_topics = []
 
     @staticmethod
     def load(path):
@@ -83,37 +53,57 @@ class TwoLayersNMF:
         with open(path, 'wb') as f:
             pickle.dump(self, f)
 
-    #def fit(self, windows):
-    def fit(self):
-        logger = logging.getLogger(__name__)
-        # 1. TFIDF
-        #logger.info("Fitting TF-IDF")
-        #tfidf = self.train_tfidf()
-        # 2. Compute word embeddings
-        #self.word_embeddings()
+    def __init__(self):
+        pass
 
-        #self.windows = windows
-        #self._fit_window_topics()
-        #self._fit_dynamic_topics()
+    def fit(self, X, y=None):
+        return self
 
-    def _fit_window_topics(self):
-        window_topics = []
-        for i, window in enumerate(self.windows):
-            window_topics.append(self._choose_topics(window, self.index_to_word))
+    def transform(self, X, y=None):
+        df, w2v, vocab, time_windows = X
+        pipeline = Pipeline(
+            steps=[
+                ("Fit window topics", FitWindowTopics()),
+                ("Fit dynamic topics", FitDynamicTopics())
+            ]
+        )
+        time_windows, dynamic_topics = pipeline.fit_transform((time_windows, vocab, w2v))
 
-        self.window_topics = window_topics
+        return df, time_windows, dynamic_topics
 
-    def _fit_dynamic_topics(self, n_top=N_DYNAMIC_TOP_TERMS):
+class FitWindowTopics(BaseEstimator, TransformerMixin):
+    def __init__(self, min_n_components=30, max_n_components=50):
+        self.min_n_components = min_n_components
+        self.max_n_components = max_n_components
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        time_windows, vocab, w2v = X
+        for time_window in time_windows:
+            time_window.topics = choose_topics(time_window.tfidf_matrix, vocab, w2v, self.min_n_components, self.max_n_components)
+        return time_windows, vocab, w2v
+
+class FitDynamicTopics(BaseEstimator, TransformerMixin):
+    def __init__(self, vocab, min_n_components=30, max_n_components=50):
+        self.index_to_word = vocab
+        self.word_to_index = {w: i for i, w in enumerate(vocab)}
+        self.n_words = len(vocab)
+        self.min_n_components = min_n_components
+        self.max_n_components = max_n_components
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        time_windows, vocab, w2v = X
         rows = []
-        for topics in self.window_topics:
-            for topic in topics:
+        for time_window in time_windows:
+            for topic in time_window.topics:
                 row = np.zeros((self.n_words,))
 
-                top_word_index = [
-                    self.word_to_index[word]
-                    for word in topic.top_terms(n_top)
-                ]
-
+                top_word_index = [self.word_to_index[word] for word in topic.top_terms(TwoLayersNMF.N_DYNAMIC_TOP_TERMS)]
                 row[top_word_index] = topic.term_weights[top_word_index]
                 rows.append(row)
 
@@ -124,56 +114,27 @@ class TwoLayersNMF:
 
         reduced = stacked[:,keep_terms]
         normalized = normalize(reduced, axis=1, norm='l2')
+        dynamic_topics = choose_topics(normalized, keep_term_names, w2v, self.min_n_components, self.max_n_components)
+        return dynamic_topics
 
-        self.dynamic_topics = self._choose_topics(
-            normalized,
-            keep_term_names,
-            min_n_components=30,
-            max_n_components=50)
+def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_components=25):
+    best_coherence = float('-inf')
+    best_topics = None
+    coherences = []
+    for n_components in range(min_n_components, max_n_components+1):
+        w,h = fit_nmf(tfidf_matrix, n_components)
+        topics = [Topic(term_weights, doc_weights, vocab) for term_weights, doc_weights in zip(h, w.T)]
 
-    def _choose_topics(self, vectors, vocab, min_n_components=10, max_n_components=25):
-        best_coherence = float('-inf')
-        best_topics = None
+        avg_coherence = sum(topic.coherence(w2v) for topic in topics) / len(topics)
+        coherences.append(avg_coherence)
+        if avg_coherence > best_coherence:
+            best_coherence = avg_coherence
+            best_topics = topics
 
-        coherences = []
-        for n_components in range(min_n_components, max_n_components + 1):
-            w,h = self.train_nmf(vectors, n_components)
-            topics = [Topic(term_weights, doc_weights, vocab) for term_weights, doc_weights in zip(h, w.T)]
+    return best_topics
 
-            avg_coherence = (
-                sum(self.get_coherence(t, self.word_vectors) for t in topics) /
-                len(topics))
-
-            coherences.append(avg_coherence)
-
-            if avg_coherence > best_coherence:
-                best_coherence = avg_coherence
-                best_topics = topics
-
-        return best_topics
-
-    @staticmethod
-    def train_nmf(data, n_components):
-        model = NMF(n_components=n_components, init='nndsvd')
-        w = model.fit_transform(data)
-        h = model.components_
-        return w,h
-
-    @staticmethod
-    def train_tfidf(self, documents, max_df=0.2, min_df=5):
-        tfidf = TfidfVectorizer(norm='l2', max_df=max_df, min_df=min_df)
-        tfidf.fit(documents)
-        return tfidf
-
-    @staticmethod
-    def train_glove(self, tokenized):
-        raise NotImplementedError()
-        """
-        glove = Glove()
-        docs = [' '.join(tokens) for tokens in tokenized]
-        return glove.fit(docs)
-        """
-
-    def train_word2vec(self, tokenized):
-        w2v = Word2Vec(tokenized, min_count=1)
-        return w2v
+def fit_nmf(tfidf_matrix, n_components):
+    model = NMF(n_components=n_components, init='nndsvd')
+    w = model.fit_transform(tfidf_matrix)
+    h = model.components_
+    return w,h

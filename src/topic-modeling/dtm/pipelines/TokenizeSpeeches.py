@@ -21,8 +21,7 @@ extra_stop_words = {
 stop_words = stop_words.union(extra_stop_words)
 
 class TokenizeSpeeches(BaseEstimator, TransformerMixin):
-    def __init__(self, col):
-        self.col = col
+    def __init__(self):
         self.nlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
 
     def fit(self, X, y=None):
@@ -30,7 +29,8 @@ class TokenizeSpeeches(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         df = X
-        df["tokenized_speech"] = self.tokenize(df[self.col].values)        
+        assert "preprocessed_speech" in df.columns, ""
+        df["tokenized_speech"] = self.tokenize(df["preprocessed_speech"].values) 
         return df
 
     def tokenize(self, documents, batch_size=100, n_process=4):
@@ -43,7 +43,11 @@ class TokenizeSpeeches(BaseEstimator, TransformerMixin):
                 )
             )
         ) for doc in documents]
-        lemmatized = [" ".join([token.lemma_ for token in doc]) for doc in tqdm(self.nlp.pipe(docs, batch_size=batch_size, n_process=n_process), total=len(docs))]
+        lemmatized = [" ".join([token.lemma_ for token in doc]) for doc in tqdm(
+            self.nlp.pipe(docs, batch_size=batch_size, n_process=n_process), 
+            total=len(docs),
+            desc="[INFO] Tokenize speeches' progress"
+            )]
         return lemmatized
 
     def doc2sent(self, doc):
