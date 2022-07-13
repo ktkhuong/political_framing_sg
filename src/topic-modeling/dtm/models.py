@@ -8,6 +8,7 @@ from itertools import combinations
 from scipy import spatial
 from gensim.models import Word2Vec
 import pickle
+import warnings
 import logging
 
 class Topic:
@@ -26,19 +27,37 @@ class Topic:
         return [self.vocab[i] for i in top_indices]
 
     def coherence(self, w2v: Word2Vec):
-        top_terms = self.top_terms()
-        total_distance = 0
-        count = 0
-        for wi, wj in combinations(top_terms, 2):
-            total_distance += w2v.wv.similarity(wi, wj)
-            count += 1
-        return float(total_distance) / (count)
+        comb = list(combinations(self.top_terms(), 2))
+        total_distance = sum(w2v.wv.similarity(wi, wj) for wi, wj in comb)
+        return float(total_distance) / len(comb)
 
 class TimeWindow:
-    def __init__(self, id, tfidf_matrix):
+    def __init__(self, id, tfidf_matrix, n_titles):
         self.id = id
-        self.tfidf_matrix = tfidf_matrix
-        self.topics = []
+        self.tfidf_matrix = tfidf_matrix # TF-IDF of the time window
+        self.topics = [] # list of Topic
+        self.coherence = 0
+        self.n_titles = n_titles
+
+    @property
+    def num_speeches(self):
+        return self.tfidf_matrix.shape[0]
+
+    @property
+    def num_words(self):
+        return self.tfidf_matrix.shape[1]
+
+    @property
+    def num_topics(self):
+        return len(self.topics)
+
+    @property
+    def speech2topic(self):
+        """
+        Assuming a single topic membership model, i.e. each speech has 1 topic with the highest weight 
+        """
+        speech_topic_weights = np.array([topic.document_weights for topic in self.topics]).T # shape = (num_speeches, num_topics)
+        return {speech: " ".join(self.topics[topic].top_terms()) for speech, topic in enumerate(np.argmax(speech_topic_weights, axis=1))}
 
 class TwoLayersNMF(BaseEstimator, TransformerMixin):
     N_COHERENCE_WORDS = 10
@@ -64,25 +83,31 @@ class TwoLayersNMF(BaseEstimator, TransformerMixin):
         pipeline = Pipeline(
             steps=[
                 ("Fit window topics", FitWindowTopics()),
-                ("Fit dynamic topics", FitDynamicTopics())
-            ]
+                #("Fit dynamic topics", FitDynamicTopics())
+            ],
+            verbose=True
         )
-        time_windows, dynamic_topics = pipeline.fit_transform((time_windows, vocab, w2v))
-
-        return df, time_windows, dynamic_topics
+        #time_windows, dynamic_topics = pipeline.fit_transform((time_windows, vocab, w2v))
+        #return df, time_windows, dynamic_topics
+        time_windows, *_ = pipeline.fit_transform((time_windows, vocab, w2v))
+        return df, time_windows
 
 class FitWindowTopics(BaseEstimator, TransformerMixin):
-    def __init__(self, min_n_components=30, max_n_components=50):
-        self.min_n_components = min_n_components
-        self.max_n_components = max_n_components
+    def __init__(self):
+        pass
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X, y=None):
+        logger = logging.getLogger(__name__)
+
         time_windows, vocab, w2v = X
         for time_window in time_windows:
-            time_window.topics = choose_topics(time_window.tfidf_matrix, vocab, w2v, self.min_n_components, self.max_n_components)
+            topics, coherence = choose_topics(time_window.tfidf_matrix, vocab, w2v, min_n_components=time_window.n_titles-20, max_n_components=time_window.n_titles+20)
+            time_window.topics = topics
+            time_window.coherence = coherence
+            logger.info(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; {time_window.coherence} coherence;")
         return time_windows, vocab, w2v
 
 class FitDynamicTopics(BaseEstimator, TransformerMixin):
@@ -131,10 +156,12 @@ def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_component
             best_coherence = avg_coherence
             best_topics = topics
 
-    return best_topics
+    return best_topics, best_coherence
 
 def fit_nmf(tfidf_matrix, n_components):
-    model = NMF(n_components=n_components, init='nndsvd')
-    w = model.fit_transform(tfidf_matrix)
-    h = model.components_
-    return w,h
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        model = NMF(n_components=n_components, init='nndsvd')
+        w = model.fit_transform(tfidf_matrix)
+        h = model.components_
+    return w, h

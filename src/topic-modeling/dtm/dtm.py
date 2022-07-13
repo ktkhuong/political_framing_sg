@@ -1,13 +1,13 @@
 import os
 import getopt, sys
 import pandas as pd
-#from utils import from_date, to_date
-from gensim.models import Word2Vec
 from models import TwoLayersNMF
 import logging
 from sklearn.pipeline import Pipeline, FeatureUnion
-from pipelines.FilterAndSortDataFrameByDates import FilterAndSortDataFrameByDates
+from pipelines.FilterByDates import FilterByDates
+from pipelines.SortByDates import SortByDates
 from pipelines.ReadDataset import ReadDataset
+from pipelines.RemoveShortSpeeches import RemoveShortSpeeches
 from pipelines.TokenizeSpeeches import TokenizeSpeeches
 from pipelines.FitWord2VecAndTfidf import FitWord2VecAndTfidf
 from pipelines.BuildTimeWindows import BuildTimeWindows
@@ -15,28 +15,8 @@ from pipelines.BuildTimeWindows import BuildTimeWindows
 
 logging.basicConfig(
     format="[%(levelname)s] - %(asctime)s - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s", 
-    #level=logging.INFO
+    level=logging.INFO
 )
-
-"""
-def read_csv(file_path, start_date, end_date) -> pd.DataFrame:
-    logger = logging.getLogger(__name__)
-    logger.info(f"Read {file_path} to pandas DataFrame")
-
-    df = pd.read_csv(file_path, usecols=["date", "quarter", "section", "title", "member", "preprocessed_speech"])
-    df['date'] = pd.to_datetime(df['date'])
-    if start_date and end_date:
-        df = from_date(df, "date", start_date)
-        df = to_date(df, "date", end_date)
-    df = df.sort_values("date").reset_index(drop=True)
-    return df
-"""
-
-def build_model(tokenized):
-    logger = logging.getLogger(__name__)
-    logger.info(f"Build TwoLayersNMF model")
-
-    model = TwoLayersNMF.by_w2v(tokenized)
 
 def main():
     try:
@@ -62,17 +42,27 @@ def main():
     pipeline = Pipeline(
         steps=[
             ("Read dataset", ReadDataset(csv_fp)),
-            ("Filter data frame by dates", FilterAndSortDataFrameByDates(start_date, end_date)),
+            ("Filter data frame by dates", FilterByDates(start_date, end_date)),
             # TODO: preprocess here
+            ("Remove short speeches", RemoveShortSpeeches()),
+            ("Sort data frame by dates", SortByDates()),
             ("Tokenize speeches", TokenizeSpeeches()),
             ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf()),
             ("Build time windows", BuildTimeWindows()),
-            ()
+            ("Model", TwoLayersNMF()),
         ],
         verbose = True
     )
-    df = pipeline.fit_transform(None)
-     
+    df, time_windows = pipeline.fit_transform(None)
+
+    for time_window in time_windows:
+        print(f"{time_window.id}: {time_window.num_speeches} speeches; {time_window.num_topics} topics; {time_window.coherence} coherence")
+        speech2topic = time_window.speech2topic
+        df_topics = pd.DataFrame(speech2topic.items(), columns=["speech","topic"]).set_index("speech")
+        df = pd.merge(df, df_topics, how="inner", left_index=True, right_index=True)
+
+    df.sort_values(by=["topic","title"]).to_csv("sgparl_window_topics.csv")
+        
     #print(pipe.get_params())
 
     #model = TwoLayersNMF.by_w2v(tokenized)

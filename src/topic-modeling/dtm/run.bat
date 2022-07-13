@@ -1,0 +1,1 @@
+python dtm.py -f sgparl.csv -s "2019-01-01" -e "2019-12-31"
