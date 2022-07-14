@@ -37,4 +37,4 @@ class BuildTimeWindows(BaseEstimator, TransformerMixin):
                 else:
                     logger.warning(f"{year}Q{quarter} is empty!")
 
-        return df, w2v, tfidf.get_feature_names_out(), time_windows
+        return w2v, tfidf.get_feature_names_out(), time_windows
