@@ -105,6 +105,7 @@ class TwoLayersNMF(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         w2v, vocab, time_windows = X
+        """
         pipeline = Pipeline(
             steps=[
                 ("Fit window topics", FitWindowTopics()),
@@ -114,18 +115,14 @@ class TwoLayersNMF(BaseEstimator, TransformerMixin):
         )
         time_windows, dynamic_topics = pipeline.fit_transform((time_windows, vocab, w2v))
         return time_windows, dynamic_topics
+        """
+        time_windows = self.fit_window_topics(time_windows, vocab, w2v)
+        dynamic_topics = self.fit_dynamic_topics(time_windows, vocab, w2v)
+        return time_windows, dynamic_topics
 
-class FitWindowTopics(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        pass
-
-    def fit(self, X, y=None):
-        return self
-
-    def transform(self, X, y=None):
+    def fit_window_topics(self, time_windows, vocab, w2v):
         logger = logging.getLogger(__name__)
 
-        time_windows, vocab, w2v = X
         for time_window in time_windows:
             topics, coherence = choose_topics(
                 time_window.tfidf_matrix, 
@@ -139,22 +136,12 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
             time_window.topics = topics
             time_window.coherence = coherence
             logger.info(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; {time_window.coherence} coherence;")
-        return time_windows, vocab, w2v
+        return time_windows
 
-class FitDynamicTopics(BaseEstimator, TransformerMixin):
-    N_DYNAMIC_TOP_TERMS = 20
+    def fit_dynamic_topics(self, time_windows, vocab, w2v,min_n_components=30, max_n_components=50):
+        logger = logging.getLogger(__name__)
 
-    def __init__(self, n_top_terms = N_DYNAMIC_TOP_TERMS, min_n_components=30, max_n_components=50):
-        self.n_top_terms = n_top_terms
-        self.min_n_components = min_n_components
-        self.max_n_components = max_n_components
-
-    def fit(self, X, y=None):
-        return self
-
-    def transform(self, X, y=None):
-        time_windows, vocab, w2v = X
-        stacked = np.vstack([time_window.top_term_weights(self.n_top_terms) for time_window in time_windows])
+        stacked = np.vstack([time_window.top_term_weights(self.N_DYNAMIC_TOP_TERMS) for time_window in time_windows])
         keep_terms = stacked.sum(axis=0) != 0
         keep_term_names = np.array(vocab)[keep_terms]
         reduced = stacked[:,keep_terms]
@@ -163,11 +150,11 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
             tfidf_matrix, 
             keep_term_names, 
             w2v, 
-            self.min_n_components, 
-            min(self.max_n_components, tfidf_matrix.shape[0])
+            min_n_components, 
+            min(max_n_components, tfidf_matrix.shape[0])
         )
-        dynamic_topics = DynamicTopics(topics, coherence)
-        return time_windows, dynamic_topics
+        logger.info(f"Dynamic topics: {len(topics)} topics; coherence = {coherence}")
+        return DynamicTopics(topics, coherence)
 
 def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_components=25):
     best_coherence = float('-inf')

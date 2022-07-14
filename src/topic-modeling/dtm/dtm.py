@@ -1,7 +1,7 @@
 import os
 import getopt, sys
 import pandas as pd
-from models import TwoLayersNMF
+from TwoLayersNMF import TwoLayersNMF
 import logging
 from sklearn.pipeline import Pipeline, FeatureUnion
 from pipelines.steps.FilterByDates import FilterByDates

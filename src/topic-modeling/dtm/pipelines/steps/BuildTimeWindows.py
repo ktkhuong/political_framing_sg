@@ -1,4 +1,4 @@
-from models import TimeWindow
+from TwoLayersNMF import TimeWindow
 from sklearn.base import BaseEstimator, TransformerMixin
 import logging
 
