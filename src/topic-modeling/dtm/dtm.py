@@ -5,6 +5,7 @@ from models import TwoLayersNMF
 import logging
 from sklearn.pipeline import Pipeline, FeatureUnion
 from pipelines.FilterByDates import FilterByDates
+from pipelines.SaveDataFrameToDb import SaveDataFrameToDb
 from pipelines.SortByDates import SortByDates
 from pipelines.ReadDataset import ReadDataset
 from pipelines.RemoveShortSpeeches import RemoveShortSpeeches
@@ -47,29 +48,18 @@ def main():
             ("Remove short speeches", RemoveShortSpeeches()),
             ("Sort data frame by dates", SortByDates()),
             ("Tokenize speeches", TokenizeSpeeches()),
+            ("Save data frame to db", SaveDataFrameToDb()),
             ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf()),
             ("Build time windows", BuildTimeWindows()),
             ("Model", TwoLayersNMF()),
         ],
         verbose = True
     )
-    df, time_windows = pipeline.fit_transform(None)
-
-    for time_window in time_windows:
-        print(f"{time_window.id}: {time_window.num_speeches} speeches; {time_window.num_topics} topics; {time_window.coherence} coherence")
-        speech2topic = time_window.speech2topic
-        df_topics = pd.DataFrame(speech2topic.items(), columns=["speech","topic"]).set_index("speech")
-        df = pd.merge(df, df_topics, how="inner", left_index=True, right_index=True)
-
-    df.sort_values(by=["topic","title"]).to_csv("sgparl_window_topics.csv")
-        
-    #print(pipe.get_params())
-
-    #model = TwoLayersNMF.by_w2v(tokenized)
-    #model.fit()
-    #tfidf = train_tfidf(tokenized)
-    #x = read_csv(csv_fp)
-    #print(x)
+    
+    pipeline.fit_transform(None)
 
 if __name__ == "__main__":
     main()
+    #import numpy as np
+    #a = np.arange(10,21)
+    #print(np.where(a < 15))
