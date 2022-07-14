@@ -15,12 +15,21 @@ class SaveDynamicTopicsToDb(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         time_windows, dynamic_topics = X
+        self.save_dynamic_topics(dynamic_topics)
+        self.save_wt2dt(time_windows, dynamic_topics)
+        return X
 
+    def save_dynamic_topics(self, dynamic_topics):
         conn = sqlite3.connect(self.db_name)
 
         data = {i: " ".join(topic.top_terms()) for i, topic in enumerate(dynamic_topics.topics)}
         df_dynamic_topics = pd.DataFrame(data.items(), columns=["id","topic"]).set_index("id")
         df_dynamic_topics.to_sql(name=self.TABLE_TOPICS, con=conn)
+
+        conn.close()
+
+    def save_wt2dt(self, time_windows, dynamic_topics):
+        conn = sqlite3.connect(self.db_name)
 
         data = {}
         offset = 0
@@ -34,7 +43,6 @@ class SaveDynamicTopicsToDb(BaseEstimator, TransformerMixin):
 
         conn.close()
 
-        return X
 
         
         

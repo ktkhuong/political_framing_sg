@@ -123,15 +123,11 @@ class TwoLayersNMF(BaseEstimator, TransformerMixin):
         pipeline = Pipeline(
             steps=[
                 ("Fit window topics", FitWindowTopics()),
-                ("Save window topics to db", SaveWindowTopicsToDb()),
                 ("Fit dynamic topics", FitDynamicTopics()),
-                ("Save dynamic topics to db", SaveDynamicTopicsToDb()),
             ],
             verbose=True
         )
         time_windows, dynamic_topics = pipeline.fit_transform((time_windows, vocab, w2v))
-        #return df, time_windows, dynamic_topics
-        #time_windows, *_ = pipeline.fit_transform((time_windows, vocab, w2v))
         return df, time_windows, dynamic_topics
 
 class FitWindowTopics(BaseEstimator, TransformerMixin):

@@ -6,6 +6,8 @@ import logging
 from sklearn.pipeline import Pipeline, FeatureUnion
 from pipelines.FilterByDates import FilterByDates
 from pipelines.SaveDataFrameToDb import SaveDataFrameToDb
+from pipelines.SaveDynamicTopicsToDb import SaveDynamicTopicsToDb
+from pipelines.SaveWindowTopicsToDb import SaveWindowTopicsToDb
 from pipelines.SortByDates import SortByDates
 from pipelines.ReadDataset import ReadDataset
 from pipelines.RemoveShortSpeeches import RemoveShortSpeeches
@@ -52,6 +54,8 @@ def main():
             ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf()),
             ("Build time windows", BuildTimeWindows()),
             ("Model", TwoLayersNMF()),
+            ("Save window topics to db", SaveWindowTopicsToDb()),
+            ("Save dynamic topics to db", SaveDynamicTopicsToDb()),
         ],
         verbose = True
     )

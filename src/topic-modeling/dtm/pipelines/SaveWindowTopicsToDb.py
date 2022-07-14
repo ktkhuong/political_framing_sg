@@ -13,7 +13,7 @@ class SaveWindowTopicsToDb(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        time_windows, *_ = X
+        time_windows, _ = X
         self.save_topics(time_windows)
         self.save_speech2topic(time_windows)
         return X
