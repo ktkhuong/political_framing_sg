@@ -4,16 +4,16 @@ import pandas as pd
 from models import TwoLayersNMF
 import logging
 from sklearn.pipeline import Pipeline, FeatureUnion
-from pipelines.FilterByDates import FilterByDates
-from pipelines.SaveDataFrameToDb import SaveDataFrameToDb
-from pipelines.SaveDynamicTopicsToDb import SaveDynamicTopicsToDb
-from pipelines.SaveWindowTopicsToDb import SaveWindowTopicsToDb
-from pipelines.SortByDates import SortByDates
-from pipelines.ReadDataset import ReadDataset
-from pipelines.RemoveShortSpeeches import RemoveShortSpeeches
-from pipelines.TokenizeSpeeches import TokenizeSpeeches
-from pipelines.FitWord2VecAndTfidf import FitWord2VecAndTfidf
-from pipelines.BuildTimeWindows import BuildTimeWindows
+from pipelines.steps.FilterByDates import FilterByDates
+from pipelines.steps.SaveDataFrameToDb import SaveDataFrameToDb
+from pipelines.steps.SaveDynamicTopicsToDb import SaveDynamicTopicsToDb
+from pipelines.steps.SaveWindowTopicsToDb import SaveWindowTopicsToDb
+from pipelines.steps.SortByDates import SortByDates
+from pipelines.steps.ReadDataset import ReadDataset
+from pipelines.steps.RemoveShortSpeeches import RemoveShortSpeeches
+from pipelines.steps.TokenizeSpeeches import TokenizeSpeeches
+from pipelines.steps.FitWord2VecAndTfidf import FitWord2VecAndTfidf
+from pipelines.steps.BuildTimeWindows import BuildTimeWindows
 #from pipelines.PartitionDataFrameIntoTimeWindows import PartitionDataFrameIntoTimeWindows
 
 logging.basicConfig(
