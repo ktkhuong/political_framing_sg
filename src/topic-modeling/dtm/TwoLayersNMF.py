@@ -71,6 +71,15 @@ class TimeWindow:
     def top_term_weights(self, n_top):
         return [topic.top_term_weights(n_top) for topic in self.topics]
 
+    def save(self, path):
+        with open(path, 'wb') as f:
+            pickle.dump(self, f)
+
+    @staticmethod
+    def load(path):
+        with open(path, 'rb') as f:
+            return pickle.load(f)
+
 class DynamicTopics:
     def __init__(self, topics, coherence) -> None:
         self.topics = topics

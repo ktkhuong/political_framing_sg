@@ -27,13 +27,14 @@ class BuildTimeWindows(BaseEstimator, TransformerMixin):
                 df_quater = df[(df["date"].dt.year == year) & (df["date"].dt.quarter == quarter)]
                 records = df_quater.index.values
                 if len(records) > 0: 
-                    time_windows.append(TimeWindow(
+                    window = TimeWindow(
                         f"{year}Q{quarter}", 
                         records,
                         tfidf_matrix[records], 
                         df_quater["title"].nunique()
-                        )
                     )
+                    window.save(f"temp\\{window.id}.pkl")
+                    time_windows.append(window)
                 else:
                     logger.warning(f"{year}Q{quarter} is empty!")
 

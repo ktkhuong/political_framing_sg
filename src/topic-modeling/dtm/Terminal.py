@@ -3,8 +3,9 @@ from pywinauto import keyboard
 from time import sleep
 
 class Terminal:
-    def __init__(self, host) -> None:
-        self.app = Application().start(cmd_line=f'putty -ssh tk402@{host}.ex.ac.uk -pw Ukw634uY0b')
+    def __init__(self, session) -> None:
+        #gcloud compute scp --recurse 2019Q1.pkl machine01:/home/ecmm451
+        self.app = Application().start(cmd_line=f'putty -load "{session}"')
         self.putty = self.app.PuTTY
         self.putty.wait('ready')
         sleep(1)
