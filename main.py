@@ -6,7 +6,7 @@ from sklearn.decomposition import NMF
 
 DATA_PATH = "data"
 
-def main():
+def fit_window_topics():
     # 1. Read time windows
     time_windows = [TimeWindow.load(DATA_PATH+"/"+f) for f in os.listdir("data") if f.endswith(".pkl") and not f.startswith("vocab")]
     # 2. Read w2v.model 
@@ -30,6 +30,9 @@ def main():
         time_window.coherence = coherence
         time_window.save(f"out/{time_window.id}.pkl")
         print(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; {time_window.coherence} coherence;")
+
+def main():
+    fit_window_topics()
         
 def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_components=25):
     best_coherence = float('-inf')
