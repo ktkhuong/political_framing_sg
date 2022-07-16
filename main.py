@@ -12,7 +12,7 @@ def fit_window_topics():
     # 2. Read w2v.model 
     w2v = Word2Vec.load(DATA_PATH+"/w2v.model")
     # 3. Read vocab
-    with open('vocab.pkl', 'rb') as f:
+    with open(DATA_PATH+'/vocab.pkl', 'rb') as f:
         vocab = pickle.load(f)
     # 4. Fit window topics
     for time_window in time_windows:
