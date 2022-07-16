@@ -29,7 +29,8 @@ def fit_window_topics():
         time_window.topics = topics
         time_window.coherence = coherence
         time_window.save(f"out/{time_window.id}.pkl")
-        print(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; {time_window.coherence} coherence;")
+        print(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; coherence = {time_window.coherence};")
+        print("-----------------------------------------------------------------------------")
 
 def main():
     fit_window_topics()
@@ -48,7 +49,7 @@ def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_component
             best_coherence = avg_coherence
             best_topics = topics
         print(f"k = {n_components}; coherence = {avg_coherence}")
-    print(f"Best: k = {len(best_topics)}; coherence = {avg_coherence}")
+    print(f"Best: k = {len(best_topics)}; coherence = {best_coherence}")
     return best_topics, best_coherence
 
 def fit_nmf(tfidf_matrix, n_components):
