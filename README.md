@@ -1,1 +1,2 @@
-# Political Framing: A Singapore Study
+# Computational Frame Analysis: A Singapore Study
+Although primarily modelled after the Westminster system, it has introduced its own unique features, most notably the Non-constituency Members of Parliament (NCMP) and Nominated Members of Parliament (NMP). NCMP is controversial and there have been many public and parliamentary debates on this topic by many sides of the political spectrum including non-partisan individuals.

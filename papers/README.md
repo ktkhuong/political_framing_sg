@@ -153,3 +153,53 @@ Once the feature matrix was complete, we then fitted STMs for a wide range of va
 
 As a final step, we characterized each topic according to its keywords and the documents which load on it most heavily, then had two coders independently identify irrelevant topic clusters and attempt to combine those which remained into coherent frame packages.
 
+
+# Political Framing: US COVID19 Blame Game
+
+## Analyzing Frames
+
+The first method involved identifying the most distinguishing features for both camps. To do so, we employed a variation of the so-called
+**valence score** , which attempts to determine the distinctiveness of a given token, such as a hashtag or retweeted account, for a particular group. Valence for term `t` in tweets of group `Gg` is computed.
+
+Valence values are bounded between -1 and 1, where -1 and 1 imply extreme disassociation or association respectively.
+
+# Identifying Media Frames and Frame Dynamics Within and Across Policy Issues
+
+## Policy Frames Cookbook
+
+1. **Economic frames:** The costs, benefits, or monetary/financial implications of the issue (to an individual, family, community or to the economy as a whole).
+2. **Capacity and resources frames:** The lack of or availability of physical, geographical, spatial, human, and financial resources, or the capacity of existing systems and resources to implement or carry out policy goals.
+3. **Morality frames:** Any perspective|or policy objective or action (including proposed action)| that is compelled by religious doctrine or interpretation, duty, honor, righteousness or any other sense of ethics or social responsibility.
+4. **Fairness and equality frames:** Equality or inequality with which laws, punishment, rewards, and resources are applied or distributed among individuals or groups. Also the balance between the rights or interests of one individual or group compared to another individual or
+group.
+5. **Constitutionality and jurisprudence frames:** The constraints imposed on or freedoms granted to individuals, government, and  corporations via the Constitution, Bill of Rights and other amendments, or judicial interpretation. This deals specifically with the authority of government to regulate, and the authority of individuals/corporations to act independently of government.
+6. **Policy prescription and evaluation:** Particular policies proposed for addressing an identifed problem, and figuring out if certain policies will work, or if existing policies are effective.
+7. **Law and order, crime and justice frames:** Specific policies in practice and their enforcement, incentives, and implications. Includes stories about enforcement and interpretation of laws by individuals and law enforcement, breaking laws, loopholes, fines, sentencing and punishment. Increases or reductions in crime.
+8. **Security and defense frames:** Security, threats to security, and protection of one's person, family, in-group, nation, etc. Generally an action or a call to action that can be taken to protect the welfare of a person, group, nation sometimes from a not yet manifested threat.
+9. **Health and safety frames:** Healthcare access and effectiveness, illness, disease, sanitation, obesity, mental health effects, prevention of or perpetuation of gun violence, infrastructure and building safety.
+10. **Quality of life frames:** The effects of a policy on individuals' wealth, mobility, access to resources, happiness, social structures, ease of day-to-day routines, quality of community life, etc.
+11. **Cultural identity frames:** The social norms, trends, values and customs constituting culture(s), as they relate to a specific policy issue
+12. **Public opinion frames:** References to general social attitudes, polling and demographic information, as well as implied or actual consequences of diverging from or getting ahead of public opinion or polls.
+13. **Political frames:** Any political considerations surrounding an issue. Issue actions or efforts or stances that are political, such as partisan filibusters, lobbyist involvement, bipartisan efforts, deal-making and vote trading, appealing to one's base, mentions of political maneuvering. Explicit statements that a policy issue is good or bad for a particular political party.
+14. **External regulation and reputation frames:** The United States' external relations with another nation; the external relations of one state with another; or relations between groups. This includes trade agreements and outcomes, comparisons of policy outcomes or desired policy outcomes.
+15. **Other frames:** Any frames that do not fit into the above categories.
+
+We advocate coding each piece of communication (e.g., newspaper story, blog post, Congressional bill) according to the primary frame category used, as well as the presence of any additional frames employed.
+
+For example, a news story focused on the economic impacts of immigration but with additional discussion about the challenges of immigrants' quality of life and cultural assimilation would receive three frame dimension codes|economic, quality of life, and cultural identity but the economic dimension would be marked as primary.
+
+Additionally, we suggest tracking the tone of each text. We differentiate among **positive**, **negative**, and **neutral** tones, where the precise definition varies according to issue being studied and the partition according to these designations will depend on the researcher's  operationalization choices.
+
+* **Positive tone:** Immigration and immigrants' rights are portrayed in a positive light or from a generally sympathetic point of view, so that immigrant advocates and supporters of less restrictive immigration laws would be pleased to see the news article.
+* **Negative tone:** Immigration and immigrants' rights are portrayed in a negative light or in a non-sympathetic manner, so that immigrant advocates and supporters of less restrictive immigration laws would be disappointed or upset to see the news article.
+* **Neutral tone:** Immigration and immigrants' rights are portrayed using both positive and negative tones that balance each other out, or the news article does not appear to discuss the issue either positively or negatively.
+
+
+Within recent computational linguistics literature, Recasens et al. (2013) draw a related distinction between **framing bias**, which involves explicitly subjective words or phrases linked with a particular point of view, and **epistemological bias**, which involves implicit assumptions and presuppositions in ostensibly neutral writing.
+
+## Measuring Ideological Proportions
+
+First, we automatically construct lexicons of ideologically-associated terms from a reference corpus of texts whose authors are strongly identified with known ideologies. We represent ideologies as discrete categories that can be organized hierarchically;
+
+The second stage makes use of these lexicons, representing a speech by a presidential candidate as a series of alternating \cues" (terms from the lexicons) and \lags" (sequences of uninteresting filler). Thus, we make no effort to classify all (or even most) of the tokens in a text; rather, we restrict focus to those phrases that are likely to be most informative about the perspective of the speaker.
+
