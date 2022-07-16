@@ -13,5 +13,5 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        process = Popen("pscp -pw Ukw634uY0b temp tk402@blue30.ex.ac.uk:/home/links/tk402/ecmm451/data", shell=True, creationflags=CREATE_NEW_CONSOLE)
+        
         return

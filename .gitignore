@@ -18,7 +18,7 @@
 
 src/data-collection/profile/*
 src/data-cleaning/ner/models
-**/.env/*
+**/env/*
 **/nmf/*
 
 !requirements.txt

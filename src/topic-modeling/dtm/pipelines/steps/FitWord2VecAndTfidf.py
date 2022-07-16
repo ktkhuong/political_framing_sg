@@ -20,7 +20,6 @@ class FitWord2VecAndTfidf(BaseEstimator, TransformerMixin):
             warnings.simplefilter("ignore")
             speeches = df["tokenized_speech"].values
             w2v = Word2Vec([speech.split() for speech in speeches], min_count=self.min_count)
-            w2v.save("temp\\w2v.model")
             tfidf = TfidfVectorizer(norm='l2', max_df=self.max_df, min_df=self.min_df)
             tfidf.fit(speeches)
         return df, w2v, tfidf

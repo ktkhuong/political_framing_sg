@@ -1,6 +1,8 @@
+from copyreg import pickle
 from TwoLayersNMF import TimeWindow
 from sklearn.base import BaseEstimator, TransformerMixin
 import logging
+import pickle
 
 class BuildTimeWindows(BaseEstimator, TransformerMixin):
     def __init__(self):
@@ -33,9 +35,8 @@ class BuildTimeWindows(BaseEstimator, TransformerMixin):
                         tfidf_matrix[records], 
                         df_quater["title"].nunique()
                     )
-                    window.save(f"temp\\{window.id}.pkl")
                     time_windows.append(window)
                 else:
                     logger.warning(f"{year}Q{quarter} is empty!")
-
-        return w2v, tfidf.get_feature_names_out(), time_windows
+        vocab = tfidf.get_feature_names_out()
+        return w2v, vocab, time_windows

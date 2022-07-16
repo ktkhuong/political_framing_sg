@@ -14,6 +14,7 @@ from pipelines.steps.RemoveShortSpeeches import RemoveShortSpeeches
 from pipelines.steps.TokenizeSpeeches import TokenizeSpeeches
 from pipelines.steps.FitWord2VecAndTfidf import FitWord2VecAndTfidf
 from pipelines.steps.BuildTimeWindows import BuildTimeWindows
+from pipelines.steps.ExportPickles import ExportPickles
 #from pipelines.PartitionDataFrameIntoTimeWindows import PartitionDataFrameIntoTimeWindows
 
 logging.basicConfig(
@@ -42,6 +43,9 @@ def main():
         else:
             pass
 
+    if not os.path.exists("out"):
+        os.makedirs("out")
+
     pipeline = Pipeline(
         steps=[
             ("Read dataset", ReadDataset(csv_fp)),
@@ -53,6 +57,7 @@ def main():
             ("Save data frame to db", SaveDataFrameToDb()),
             ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf()),
             ("Build time windows", BuildTimeWindows()),
+            ("Export to pickle", ExportPickles()),
             ("Model", TwoLayersNMF()),
             ("Save window topics to db", SaveWindowTopicsToDb()),
             ("Save dynamic topics to db", SaveDynamicTopicsToDb()),
