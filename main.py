@@ -4,7 +4,7 @@ from models.Topic import Topic
 from gensim.models import Word2Vec
 from sklearn.decomposition import NMF
 
-DATA_PATH = "../data"
+DATA_PATH = "data"
 
 def fit_window_topics():
     # 1. Read time windows
