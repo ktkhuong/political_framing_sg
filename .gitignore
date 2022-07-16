@@ -13,6 +13,7 @@
 *-checkpoint.csv
 *.cfg
 *.spacy
+*.pkl
 
 src/data-collection/profile/*
 src/data-cleaning/ner/models
