@@ -66,7 +66,7 @@ def preprocess(parl_num):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "fpm:")
+        opts, args = getopt.getopt(sys.argv[1:], "fpn:")
     except getopt.GetoptError as err:
         print(err)
         sys.exit(2)
@@ -78,7 +78,7 @@ def main():
             choice = 1
         elif o == "-p":
             choice = 2
-        elif o == "-m":
+        elif o == "-n":
             parl_num = int(a)
         
     if choice == 1:
