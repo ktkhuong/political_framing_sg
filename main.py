@@ -13,9 +13,18 @@ logging.basicConfig(
 )
 
 DATA_PATH = "data"
+OUT_PATH = "out"
+
+def clear_dir(path):
+    for f in os.listdir(path):
+        fp = f"{path}/{f}"
+        os.remove(fp)
 
 def fit_window_topics():
     logger = logging.getLogger(__name__)
+
+    clear_dir(OUT_PATH)
+
     # 1. Read time windows
     time_windows = [TimeWindow.load(DATA_PATH+"/"+f) for f in os.listdir("data") if f.endswith(".pkl") and not f.startswith("vocab")]
     # 2. Read w2v.model 
@@ -37,9 +46,11 @@ def fit_window_topics():
             topic.id = f"{time_window.id}/{i}"
         time_window.topics = topics
         time_window.coherence = coherence
-        time_window.save(f"out/{time_window.id}.pkl")
+        time_window.save(f"{OUT_PATH}/{time_window.id}.pkl")
         logger.info(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; coherence = {time_window.coherence};")
         logger.info("-----------------------------------------------------------------------------")
+
+    clear_dir(DATA_PATH)
 
 def main():
     fit_window_topics()
