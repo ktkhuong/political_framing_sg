@@ -1,12 +1,21 @@
-import os, pickle, warnings
+import os, pickle, warnings, logging
 from models.TimeWindow import TimeWindow
 from models.Topic import Topic
 from gensim.models import Word2Vec
 from sklearn.decomposition import NMF
+import socket
+
+logging.basicConfig(
+    filename=f"out/{socket.gethostname()}.log",
+    filemode="w",
+    format="%(asctime)s - %(funcName)s - %(message)s", 
+    level=logging.INFO
+)
 
 DATA_PATH = "data"
 
 def fit_window_topics():
+    logger = logging.getLogger(__name__)
     # 1. Read time windows
     time_windows = [TimeWindow.load(DATA_PATH+"/"+f) for f in os.listdir("data") if f.endswith(".pkl") and not f.startswith("vocab")]
     # 2. Read w2v.model 
@@ -16,7 +25,7 @@ def fit_window_topics():
         vocab = pickle.load(f)
     # 4. Fit window topics
     for time_window in time_windows:
-        print(f"Fitting {time_window.id} ...")
+        logger.info(f"Fitting {time_window.id} ...")
         topics, coherence = choose_topics(
             time_window.tfidf_matrix, 
             vocab, 
@@ -29,13 +38,15 @@ def fit_window_topics():
         time_window.topics = topics
         time_window.coherence = coherence
         time_window.save(f"out/{time_window.id}.pkl")
-        print(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; coherence = {time_window.coherence};")
-        print("-----------------------------------------------------------------------------")
+        logger.info(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; coherence = {time_window.coherence};")
+        logger.info("-----------------------------------------------------------------------------")
 
 def main():
     fit_window_topics()
         
 def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_components=25):
+    logger = logging.getLogger(__name__)
+
     best_coherence = float('-inf')
     best_topics = None
     coherences = []
@@ -48,8 +59,8 @@ def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_component
         if avg_coherence > best_coherence:
             best_coherence = avg_coherence
             best_topics = topics
-        print(f"k = {n_components}; coherence = {avg_coherence}")
-    print(f"Best: k = {len(best_topics)}; coherence = {best_coherence}")
+        logger.info(f"k = {n_components}; coherence = {avg_coherence}")
+    logger.info(f"Best: k = {len(best_topics)}; coherence = {best_coherence}")
     return best_topics, best_coherence
 
 def fit_nmf(tfidf_matrix, n_components):
