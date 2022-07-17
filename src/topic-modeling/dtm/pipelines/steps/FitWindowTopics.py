@@ -62,7 +62,7 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
 
     def setup(self, host):
         logger = logging.getLogger(__name__)
-        logger.info(f"{host} setup ...")
+        logger.message(f"{host} setup ...")
         commands = [
             "rm -rf cloud",
             "git clone -b cloud --single-branch https://github.com/ktkhuong/sgparl.git cloud",
@@ -90,7 +90,7 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         years = set([f[:4] for f in os.listdir("out") if f.find("Q") != -1])
         machine = 1
         for year in years:
-            logger.info(f"machine{str(machine).zfill(2)}: {year}")
+            logger.message(f"machine{str(machine).zfill(2)}: {year}")
             p = subprocess.Popen(f"gcloud compute scp --recurse out/{year}*.pkl machine{str(machine).zfill(2)}:/home/sgparl/cloud/data", shell=True)
             p.wait()
             machine += 1
@@ -105,7 +105,10 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
             p.wait()
 
     def download_data(self):
+        logger = logging.getLogger(__name__)
+
         for i in range(1, self.N_MACHINES+1):
+            logger.message(f"machine{str(i).zfill(2)}")
             p = subprocess.Popen(f"gcloud compute scp --recurse machine{str(i).zfill(2)}:/home/sgparl/cloud/out/* in", shell=True)
             p.wait()
 

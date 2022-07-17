@@ -16,8 +16,8 @@ class BuildTimeWindows(BaseEstimator, TransformerMixin):
         df, w2v, tfidf = X
         tfidf_matrix = tfidf.transform(df["tokenized_speech"].values)
 
-        logger.info(f"DataFrame: {df.shape}")
-        logger.info(f"TF-IDF: {tfidf_matrix.shape}")
+        logger.message(f"DataFrame: {df.shape}")
+        logger.message(f"TF-IDF: {tfidf_matrix.shape}")
         
         time_windows = []
         year_start = df["date"].dt.year.min()
@@ -34,7 +34,7 @@ class BuildTimeWindows(BaseEstimator, TransformerMixin):
                         df_quater["title"].nunique()
                     )
                     time_windows.append(window)
-                    logger.info(f"{year}Q{quarter}: {df_quater.shape}")
+                    logger.message(f"{year}Q{quarter}: {df_quater.shape}")
                 else:
                     logger.warning(f"{year}Q{quarter} is empty!")
         vocab = tfidf.get_feature_names_out()

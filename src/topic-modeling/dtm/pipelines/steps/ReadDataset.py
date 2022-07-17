@@ -14,5 +14,5 @@ class ReadDataset(BaseEstimator, TransformerMixin):
 
         df = pd.read_csv(self.path, usecols=["date", "quarter", "section", "title", "member", "preprocessed_speech"])
         df['date'] = pd.to_datetime(df['date'])
-        logger.info(f"Dataset shape: {df.shape}")
+        logger.message(f"Dataset shape: {df.shape}")
         return df

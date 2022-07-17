@@ -13,9 +13,16 @@ from pipelines.steps.FitWord2VecAndTfidf import FitWord2VecAndTfidf
 from pipelines.steps.BuildTimeWindows import BuildTimeWindows
 from pipelines.steps.ExportData import ExportData
 
+MESSAGE = logging.INFO+5
+logging.addLevelName(MESSAGE, 'MESSAGE')  # addLevelName(25, 'MESSAGE')
+def message(self, msg, *args, **kwargs):
+    if self.isEnabledFor(MESSAGE):
+        self._log(MESSAGE, msg, args, **kwargs) 
+logging.message = message
+logging.Logger.message = message
 logging.basicConfig(
     format="[%(levelname)s] - %(asctime)s - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s", 
-    level=logging.INFO
+    level=MESSAGE
 )
 
 def main():
@@ -67,7 +74,6 @@ def main():
         verbose = True
     )
 
-    
     pipeline.fit_transform(None)
     
 if __name__ == "__main__":

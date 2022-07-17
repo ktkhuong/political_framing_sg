@@ -32,7 +32,7 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
             self.min_n_components, 
             min(self.max_n_components, tfidf_matrix.shape[0])
         )
-        logger.info(f"Dynamic topics: {len(topics)} topics; coherence = {coherence}")
+        logger.message(f"Dynamic topics: {len(topics)} topics; coherence = {coherence}")
         return DynamicTopics(topics, coherence, time_windows)
 
     def choose_topics(self, tfidf_matrix, vocab, w2v, min_n_components=10, max_n_components=25):
