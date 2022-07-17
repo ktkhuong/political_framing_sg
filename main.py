@@ -1,19 +1,15 @@
-import os, pickle, warnings, logging
+import os, pickle, warnings, logging, socket, getopt, sys, re
 from models.TimeWindow import TimeWindow
 from models.Topic import Topic
 from gensim.models import Word2Vec
 from sklearn.decomposition import NMF
-import socket
-
-logging.basicConfig(
-    filename=f"out/{socket.gethostname()}.log",
-    filemode="w",
-    format="%(asctime)s - %(funcName)s - %(message)s", 
-    level=logging.INFO
-)
+from read_dataset import speeches_from_json
+import pandas as pd
+from preprocess import preprocess_df
 
 DATA_PATH = "data"
 OUT_PATH = "out"
+DATASET_PATH = "dataset"
 
 def clear_dir(path):
     for f in os.listdir(path):
@@ -52,8 +48,55 @@ def fit_window_topics():
 
     clear_dir(DATA_PATH)
 
+def preprocess(parl_num):
+    logger = logging.getLogger(__name__)
+
+    path = f"{DATASET_PATH}/{parl_num}"
+    records = [speech for f in os.listdir(path) if f.lower().endswith(".json") 
+                      for speech in speeches_from_json(f"{path}/{f}")]
+    with open(f"{DATASET_PATH}/mp.txt") as f:
+        members = [re.sub(r"[^a-z. ]", "", line.replace("\n","").lower().strip()) for line in f.readlines() if line.strip()]
+    df = pd.DataFrame.from_records(records)
+    df['date'] = pd.to_datetime(df['date'])
+    df_members = pd.DataFrame(members, columns=["name"])
+    df_members = df_members.drop_duplicates(["name"]).reset_index(drop=True)
+    df = preprocess_df(df, df_members['name'].values)
+    df.to_csv(f"{OUT_PATH}/parliament_{parl_num}.csv")
+    logger.info(f"df: {df.shape}")
+
 def main():
-    fit_window_topics()
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "fpm:")
+    except getopt.GetoptError as err:
+        print(err)
+        sys.exit(2)
+
+    choice = 0
+    parl_num = 0
+    for o, a in opts:
+        if o == "-f":
+            choice = 1
+        elif o == "-p":
+            choice = 2
+        elif o == "-m":
+            parl_num = int(a)
+        
+    if choice == 1:
+        logging.basicConfig(
+            filename=f"out/{socket.gethostname()}_fit.log",
+            filemode="w",
+            format="%(asctime)s - %(funcName)s - %(message)s", 
+            level=logging.INFO
+        )
+        fit_window_topics()
+    elif choice == 2:
+        logging.basicConfig(
+            filename=f"out/{socket.gethostname()}_preprocess.log",
+            filemode="w",
+            format="%(asctime)s - %(funcName)s - %(message)s", 
+            level=logging.INFO
+        )
+        preprocess(parl_num)
         
 def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_components=25):
     logger = logging.getLogger(__name__)
