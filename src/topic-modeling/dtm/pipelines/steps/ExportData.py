@@ -1,7 +1,7 @@
 from sklearn.base import BaseEstimator, TransformerMixin
 import pickle
 
-class ExportPickles(BaseEstimator, TransformerMixin):
+class ExportData(BaseEstimator, TransformerMixin):
     def __init__(self):
         pass
 

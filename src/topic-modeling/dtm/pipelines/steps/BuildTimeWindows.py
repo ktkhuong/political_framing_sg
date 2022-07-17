@@ -1,8 +1,7 @@
 from copyreg import pickle
-from TwoLayersNMF import TimeWindow
+from models.TimeWindow import TimeWindow
 from sklearn.base import BaseEstimator, TransformerMixin
 import logging
-import pickle
 
 class BuildTimeWindows(BaseEstimator, TransformerMixin):
     def __init__(self):
@@ -25,7 +24,6 @@ class BuildTimeWindows(BaseEstimator, TransformerMixin):
         year_end = df["date"].dt.year.max()
         for year in range(year_start, year_end+1):
             for quarter in range(1,5):
-                logger.info(f"{year}Q{quarter}")
                 df_quater = df[(df["date"].dt.year == year) & (df["date"].dt.quarter == quarter)]
                 records = df_quater.index.values
                 if len(records) > 0: 
@@ -36,6 +34,7 @@ class BuildTimeWindows(BaseEstimator, TransformerMixin):
                         df_quater["title"].nunique()
                     )
                     time_windows.append(window)
+                    logger.info(f"{year}Q{quarter}: {df_quater.shape}")
                 else:
                     logger.warning(f"{year}Q{quarter} is empty!")
         vocab = tfidf.get_feature_names_out()

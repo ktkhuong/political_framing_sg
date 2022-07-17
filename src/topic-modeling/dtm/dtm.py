@@ -5,6 +5,7 @@ from TwoLayersNMF import TwoLayersNMF
 import logging
 from sklearn.pipeline import Pipeline, FeatureUnion
 from pipelines.steps.FilterByDates import FilterByDates
+from pipelines.steps.FitWindowTopics import FitWindowTopics
 from pipelines.steps.SaveDataFrameToDb import SaveDataFrameToDb
 from pipelines.steps.SaveDynamicTopicsToDb import SaveDynamicTopicsToDb
 from pipelines.steps.SaveWindowTopicsToDb import SaveWindowTopicsToDb
@@ -14,7 +15,7 @@ from pipelines.steps.RemoveShortSpeeches import RemoveShortSpeeches
 from pipelines.steps.TokenizeSpeeches import TokenizeSpeeches
 from pipelines.steps.FitWord2VecAndTfidf import FitWord2VecAndTfidf
 from pipelines.steps.BuildTimeWindows import BuildTimeWindows
-from pipelines.steps.ExportPickles import ExportPickles
+from pipelines.steps.ExportData import ExportData
 #from pipelines.PartitionDataFrameIntoTimeWindows import PartitionDataFrameIntoTimeWindows
 
 logging.basicConfig(
@@ -43,8 +44,9 @@ def main():
         else:
             pass
 
-    if not os.path.exists("out"):
-        os.makedirs("out")
+    for path in ["out", "in"]:
+        if not os.path.exists(path):
+            os.makedirs(path)
 
     pipeline = Pipeline(
         steps=[
@@ -57,7 +59,8 @@ def main():
             ("Save data frame to db", SaveDataFrameToDb()),
             ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf()),
             ("Build time windows", BuildTimeWindows()),
-            ("Export to pickle", ExportPickles()),
+            ("Export pickles", ExportData()),
+            ("Fit window topics", FitWindowTopics()),
             ("Model", TwoLayersNMF()),
             ("Save window topics to db", SaveWindowTopicsToDb()),
             ("Save dynamic topics to db", SaveDynamicTopicsToDb()),
@@ -66,9 +69,6 @@ def main():
     )
     
     pipeline.fit_transform(None)
-
+    
 if __name__ == "__main__":
     main()
-    #import numpy as np
-    #a = np.arange(10,21)
-    #print(np.where(a < 15))

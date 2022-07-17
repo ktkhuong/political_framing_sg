@@ -1,84 +1,12 @@
 import numpy as np
+from models.TimeWindow import TimeWindow
+from models.Topic import Topic
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.pipeline import Pipeline
 from sklearn.decomposition import NMF
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import normalize
-from itertools import combinations
-from scipy import spatial
-from gensim.models import Word2Vec
 import pickle
 import warnings
 import logging
-
-class Topic:
-    N_TOP_TERMS = 10
-
-    def __init__(self, term_weights, document_weights, vocab):
-        self.term_weights = term_weights
-        self.document_weights = document_weights
-        self.vocab = vocab
-        self.id = None
-
-    def top_term_indices(self, n_top=N_TOP_TERMS):
-        return np.argsort(self.term_weights)[::-1][:n_top]
-
-    def top_terms(self, n_top=N_TOP_TERMS):
-        top_indices = self.top_term_indices(n_top)
-        return [self.vocab[i] for i in top_indices]
-
-    def top_term_weights(self, n_top=N_TOP_TERMS):
-        word_to_index = {w: i for i, w in enumerate(self.vocab)}
-        row = np.zeros((len(self.vocab),))
-        top_word_index = [word_to_index[word] for word in self.top_terms(n_top)]
-        row[top_word_index] = self.term_weights[top_word_index]
-        return row
-
-    def coherence(self, w2v: Word2Vec):
-        comb = list(combinations(self.top_terms(), 2))
-        total_distance = sum(w2v.wv.similarity(wi, wj) for wi, wj in comb)
-        return float(total_distance) / len(comb)
-
-class TimeWindow:
-    def __init__(self, id, speech_ids, tfidf_matrix, n_titles):
-        self.id = id
-        self.speech_ids = speech_ids
-        self.tfidf_matrix = tfidf_matrix # TF-IDF of the time window
-        self.topics = [] # list of Topic
-        self.coherence = 0
-        self.n_titles = n_titles
-
-    @property
-    def num_speeches(self):
-        return self.tfidf_matrix.shape[0]
-
-    @property
-    def num_words(self):
-        return self.tfidf_matrix.shape[1]
-
-    @property
-    def num_topics(self):
-        return len(self.topics)
-
-    @property
-    def speech2topic(self):
-        """
-        Assuming a single membership model, i.e. each speech has 1 topic with the highest weight 
-        """
-        speech_topic_weights = np.array([topic.document_weights for topic in self.topics]).T # shape = (num_speeches, num_topics)
-        return {self.speech_ids[speech]: self.topics[topic].id for speech, topic in enumerate(np.argmax(speech_topic_weights, axis=1))}
-
-    def top_term_weights(self, n_top):
-        return [topic.top_term_weights(n_top) for topic in self.topics]
-
-    def save(self, path):
-        with open(path, 'wb') as f:
-            pickle.dump(self, f)
-
-    @staticmethod
-    def load(path):
-        with open(path, 'rb') as f:
-            return pickle.load(f)
 
 class DynamicTopics:
     def __init__(self, topics, coherence) -> None:
