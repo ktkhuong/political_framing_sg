@@ -26,7 +26,6 @@ def fit_window_topics():
     # 4. Fit window topics
     for time_window in time_windows:
         logger.info(f"Fitting {time_window.id} ...")
-        print(f"{socket.gethostname()}: fitting {time_window.id} ...")
         topics, coherence = choose_topics(
             time_window.tfidf_matrix, 
             vocab, 
