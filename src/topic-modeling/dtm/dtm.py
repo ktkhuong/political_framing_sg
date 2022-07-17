@@ -1,14 +1,10 @@
-import os
-import getopt, sys
-import pandas as pd
-from TwoLayersNMF import TwoLayersNMF
-import logging
-from sklearn.pipeline import Pipeline, FeatureUnion
+import os, getopt, sys, logging
+from sklearn.pipeline import Pipeline
 from pipelines.steps.FilterByDates import FilterByDates
+from pipelines.steps.FitDynamicTopics import FitDynamicTopics
 from pipelines.steps.FitWindowTopics import FitWindowTopics
 from pipelines.steps.SaveDataFrameToDb import SaveDataFrameToDb
-from pipelines.steps.SaveDynamicTopicsToDb import SaveDynamicTopicsToDb
-from pipelines.steps.SaveWindowTopicsToDb import SaveWindowTopicsToDb
+from pipelines.steps.SaveToDb import SaveToDb
 from pipelines.steps.SortByDates import SortByDates
 from pipelines.steps.ReadDataset import ReadDataset
 from pipelines.steps.RemoveShortSpeeches import RemoveShortSpeeches
@@ -16,7 +12,6 @@ from pipelines.steps.TokenizeSpeeches import TokenizeSpeeches
 from pipelines.steps.FitWord2VecAndTfidf import FitWord2VecAndTfidf
 from pipelines.steps.BuildTimeWindows import BuildTimeWindows
 from pipelines.steps.ExportData import ExportData
-#from pipelines.PartitionDataFrameIntoTimeWindows import PartitionDataFrameIntoTimeWindows
 
 logging.basicConfig(
     format="[%(levelname)s] - %(asctime)s - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s", 
@@ -48,6 +43,7 @@ def main():
         if not os.path.exists(path):
             os.makedirs(path)
 
+
     pipeline = Pipeline(
         steps=[
             ("Read dataset", ReadDataset(csv_fp)),
@@ -57,16 +53,20 @@ def main():
             ("Sort data frame by dates", SortByDates()),
             ("Tokenize speeches", TokenizeSpeeches()),
             ("Save data frame to db", SaveDataFrameToDb()),
-            ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf()),
-            ("Build time windows", BuildTimeWindows()),
-            ("Export pickles", ExportData()),
-            ("Fit window topics", FitWindowTopics()),
-            ("Model", TwoLayersNMF()),
-            ("Save window topics to db", SaveWindowTopicsToDb()),
-            ("Save dynamic topics to db", SaveDynamicTopicsToDb()),
+            ("Two-layers NMF", Pipeline(
+                steps=[
+                    ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf()),
+                    ("Build time windows", BuildTimeWindows()),
+                    ("Export pickles", ExportData()),
+                    ("Fit window topics", FitWindowTopics()),
+                    ("Fit dynamic topics", FitDynamicTopics()),
+                ]
+            )),
+            ("Save to db", SaveToDb()),
         ],
         verbose = True
     )
+
     
     pipeline.fit_transform(None)
     
