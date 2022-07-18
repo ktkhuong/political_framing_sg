@@ -80,7 +80,14 @@ def main():
             choice = 2
         elif o == "-n":
             parl_num = int(a)
-        
+
+    logging.basicConfig(
+        format="%(asctime)s - %(funcName)s - %(message)s", 
+        level=logging.INFO
+    )
+    logger = logging.getLogger(__name__)
+    logger.info(f"choice = {choice}; parl_num = {parl_num}")
+
     if choice == 1:
         logging.basicConfig(
             filename=f"out/{socket.gethostname()}_fit.log",
