@@ -8,8 +8,9 @@ class PreprocessDataset(BaseEstimator, TransformerMixin):
     PRIVATE_KEY = "ssh/sgparl_private.ppk"
     N_PARLIMENTS = 14
 
-    def __init__(self, machines):
+    def __init__(self, machines, dataset_url):
         self.machines = machines
+        self.dataset_url = dataset_url
 
     def fit(self, X, y=None):
         return self
@@ -38,7 +39,7 @@ class PreprocessDataset(BaseEstimator, TransformerMixin):
         logger = logging.getLogger(__name__)
         logger.message(f"{host} setup ...")
         commands = [
-            "sudo wget -P /cloud https://github.com/ktkhuong/political_framing_sg/releases/download/dataset_parliament_v0.0.1/parliament.zip",
+            f"sudo wget -P /cloud {self.dataset_url}",
             "sudo unzip /cloud/parliament.zip -d cloud/dataset",
             "cd cloud",
             "python3 -m venv env",

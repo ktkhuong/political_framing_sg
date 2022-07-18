@@ -17,16 +17,17 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         w2v, vocab, time_windows = X
 
-        #self.run_machine(self.setup)
-        self.upload_data()
-        self.run_machine(self.fit_windows)
-        self.download_data()
+        used = self.upload_data()
+        self.run_machine(used, self.fit_windows)
+        self.download_data(used)
         time_windows = self.concat()        
         return w2v, vocab, time_windows
 
-    def run_machine(self, target):
+    def run_machine(self, used, target):
         threads = []
-        for host, _ in self.machines:
+        #for host, _ in self.machines:
+        for i in used:
+            host, _ = self.machines[i-1]
             t = threading.Thread(target=target, args=(host,))
             t.start()
             threads.append(t)
@@ -62,29 +63,29 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         logger = logging.getLogger(__name__)
 
         years = set([f[:4] for f in os.listdir("out") if f.find("Q") != -1])
+        used = set()
         i = 1
         for year in years:
-            logger.message(f"machine{str(i).zfill(2)}: {year}")
+            logger.message(f"Upload to machine{str(i).zfill(2)}: {year}")
             _, zone = self.machines[i-1]
+            used.add(i)
             p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/{year}*.pkl machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
+            p.wait()
+            p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/w2v.model machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
+            p.wait()
+            p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/vocab.pkl machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
             p.wait()
             i += 1
             # load balancing: round-robin
             if i > len(self.machines):
                 i = 1
-        
-        for i in range(1, len(self.machines)+1):
-            _, zone = self.machines[i-1]
-            p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/w2v.model machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
-            p.wait()
-            p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/vocab.pkl machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
-            p.wait()
+        return used
 
-    def download_data(self):
+    def download_data(self, used):
         logger = logging.getLogger(__name__)
 
-        for i in range(1, len(self.machines)+1):
-            logger.message(f"machine{str(i).zfill(2)}")
+        for i in used:
+            logger.message(f"Download from machine{str(i).zfill(2)}")
             _, zone = self.machines[i-1]
             p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} machine{str(i).zfill(2)}:/home/sgparl/cloud/out/* in", shell=True)
             p.wait()
