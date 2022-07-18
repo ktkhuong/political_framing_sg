@@ -82,8 +82,8 @@ def main():
             parl_num = int(a)
 
     logging.basicConfig(
-        filename=f"out/{socket.gethostname()}.log",
-        filemode="w",
+        #filename=f"out/{socket.gethostname()}.log",
+        #filemode="w",
         format="%(asctime)s - %(funcName)s - %(message)s", 
         level=logging.INFO
     )

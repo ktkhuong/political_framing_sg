@@ -1,6 +1,7 @@
 from unidecode import unidecode
 import os, json
 import datetime
+import logging
 
 def format_date(date):
     day, month, year = list(map(int, date.split("-")))
@@ -13,6 +14,7 @@ def get_quarter(date):
 def speeches_from_json(json_file):
     with open(json_file, "r") as f:
         data = json.load(f)
+    logging.info(f"read {json_file}")
     return [{
         "file": json_file.split("/")[-1],
         "section": data["section"], 
