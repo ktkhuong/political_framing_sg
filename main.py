@@ -9,7 +9,7 @@ from preprocess import preprocess_df
 
 DATA_PATH = "data"
 OUT_PATH = "out"
-DATASET_PATH = "dataset"
+DATASET_PATH = "dataset/parliament"
 
 def clear_dir(path):
     for f in os.listdir(path):
