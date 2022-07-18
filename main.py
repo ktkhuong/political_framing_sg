@@ -62,7 +62,7 @@ def preprocess(parl_num):
     df_members = df_members.drop_duplicates(["name"]).reset_index(drop=True)
     df = preprocess_df(df, df_members['name'].values)
     df.to_csv(f"{OUT_PATH}/parliament_{parl_num}.csv")
-    logger.info(f"df: {df.shape}")
+    logger.info(f"Data frame: {df.shape}")
 
 def main():
     try:
@@ -80,15 +80,6 @@ def main():
             choice = 2
         elif o == "-n":
             parl_num = int(a)
-
-    logging.basicConfig(
-        #filename=f"out/{socket.gethostname()}.log",
-        #filemode="w",
-        format="%(asctime)s - %(funcName)s - %(message)s", 
-        level=logging.INFO
-    )
-    logger = logging.getLogger(__name__)
-    logger.info(f"choice = {choice}; parl_num = {parl_num}")
 
     if choice == 1:
         logging.basicConfig(
