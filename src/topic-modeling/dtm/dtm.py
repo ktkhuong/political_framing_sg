@@ -3,8 +3,10 @@ from sklearn.pipeline import Pipeline
 from pipelines.steps.FilterByDates import FilterByDates
 from pipelines.steps.FitDynamicTopics import FitDynamicTopics
 from pipelines.steps.FitWindowTopics import FitWindowTopics
+from pipelines.steps.PreprocessDataset import PreprocessDataset
 from pipelines.steps.SaveDataFrameToDb import SaveDataFrameToDb
 from pipelines.steps.SaveToDb import SaveToDb
+from pipelines.steps.SetupVirtualMachines import SetupVirtualMachines
 from pipelines.steps.SortByDates import SortByDates
 from pipelines.steps.ReadDataset import ReadDataset
 from pipelines.steps.RemoveShortSpeeches import RemoveShortSpeeches
@@ -25,24 +27,48 @@ logging.basicConfig(
     level=MESSAGE
 )
 
+VIRTUAL_MACHINES = [
+    ("35.230.145.133", "europe-west2-c"),
+    ("34.105.198.81", "europe-west2-c"),
+    ("34.89.82.234", "europe-west2-c"),
+    ("34.105.223.204", "europe-west2-c"),
+    ("34.142.117.55", "europe-west2-c"),
+    ("34.105.150.137", "europe-west2-c"),
+    ("35.242.189.94", "europe-west2-c"),
+    ("35.197.243.136", "europe-west2-c"),
+    ("34.159.79.175", "europe-west3-c"),
+    ("34.89.197.49", "europe-west3-c"),
+    ("34.141.53.127", "europe-west3-c"),
+    ("34.141.5.49", "europe-west3-c"),
+    ("34.159.18.247", "europe-west3-c"),
+    ("35.242.244.194", "europe-west3-c"),
+    ("34.159.212.162", "europe-west3-c"),
+    ("34.89.198.67", "europe-west3-c"),
+    ("35.233.114.39", "europe-west1-b"),
+    ("34.79.46.120", "europe-west1-b"),
+    ("34.76.181.226", "europe-west1-b"),
+    ("35.205.126.153", "europe-west1-b"),
+    ("34.79.16.118", "europe-west1-b"),
+    ("35.190.204.12", "europe-west1-b"),
+    ("34.77.120.239", "europe-west1-b"),
+    ("35.241.181.102", "europe-west1-b"),
+]
+
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "f:s:e:v")
+        opts, args = getopt.getopt(sys.argv[1:], "u:s:e:")
     except getopt.GetoptError as err:
         print(err)
         sys.exit(2)
 
-    csv_fp, start_date, end_date = "", "", ""
-    verbose = False
+    url, start_date, end_date = "", "", ""
     for o, a in opts:
-        if o == "-f":
-            csv_fp = a
+        if o == "-u":
+            url = a
         elif o == "-s":
             start_date = a
         elif o == "-e":
             end_date = a
-        elif o == "-v":
-            verbose = True
         else:
             pass
 
@@ -50,12 +76,12 @@ def main():
         if not os.path.exists(path):
             os.makedirs(path)
 
-
     pipeline = Pipeline(
         steps=[
-            ("Read dataset", ReadDataset(csv_fp)),
+            ("Setup virtual machines", SetupVirtualMachines(VIRTUAL_MACHINES)),
+            ("Preprocess dataset", PreprocessDataset(VIRTUAL_MACHINES, url)),
+            ("Read dataset", ReadDataset()),
             ("Filter data frame by dates", FilterByDates(start_date, end_date)),
-            # TODO: preprocess here
             ("Remove short speeches", RemoveShortSpeeches()),
             ("Sort data frame by dates", SortByDates()),
             ("Tokenize speeches", TokenizeSpeeches()),
@@ -65,7 +91,7 @@ def main():
                     ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf()),
                     ("Build time windows", BuildTimeWindows()),
                     ("Export pickles", ExportData()),
-                    ("Fit window topics", FitWindowTopics()),
+                    ("Fit window topics", FitWindowTopics(VIRTUAL_MACHINES)),
                     ("Fit dynamic topics", FitDynamicTopics()),
                 ]
             )),
@@ -73,6 +99,15 @@ def main():
         ],
         verbose = True
     )
+    """
+    pipeline = Pipeline(
+        steps=[
+            ("Setup virtual machines", SetupVirtualMachines(VIRTUAL_MACHINES)),
+            ("Preprocess dataset", PreprocessDataset(VIRTUAL_MACHINES, DATASET_URL)),
+        ],
+        verbose = True
+    )
+    """
 
     pipeline.fit_transform(None)
     
