@@ -2,7 +2,6 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from gensim.models import Word2Vec
 from sklearn.feature_extraction.text import TfidfVectorizer
-import logging
 import warnings
 
 class FitWord2VecAndTfidf(BaseEstimator, TransformerMixin):
