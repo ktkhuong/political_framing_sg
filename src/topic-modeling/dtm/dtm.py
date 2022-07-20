@@ -56,12 +56,13 @@ VIRTUAL_MACHINES = [
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "u:s:e:")
+        opts, args = getopt.getopt(sys.argv[1:], "u:s:e:m:")
     except getopt.GetoptError as err:
         print(err)
         sys.exit(2)
 
     url, start_date, end_date = "", "", ""
+    machines = len(VIRTUAL_MACHINES)
     for o, a in opts:
         if o == "-u":
             url = a
@@ -69,6 +70,8 @@ def main():
             start_date = a
         elif o == "-e":
             end_date = a
+        elif o == "-m":
+            machines = int(a)
         else:
             pass
 
@@ -78,8 +81,8 @@ def main():
 
     pipeline = Pipeline(
         steps=[
-            ("Setup virtual machines", SetupVirtualMachines(VIRTUAL_MACHINES)),
-            ("Preprocess dataset", PreprocessDataset(VIRTUAL_MACHINES, url)),
+            ("Setup virtual machines", SetupVirtualMachines(VIRTUAL_MACHINES[:machines])),
+            ("Preprocess dataset", PreprocessDataset(VIRTUAL_MACHINES[:machines], url)),
             ("Read dataset", ReadDataset()),
             ("Filter data frame by dates", FilterByDates(start_date, end_date)),
             ("Remove short speeches", RemoveShortSpeeches()),
@@ -91,7 +94,7 @@ def main():
                     ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf()),
                     ("Build time windows", BuildTimeWindows()),
                     ("Export pickles", ExportData()),
-                    ("Fit window topics", FitWindowTopics(VIRTUAL_MACHINES)),
+                    ("Fit window topics", FitWindowTopics(VIRTUAL_MACHINES[:machines])),
                     ("Fit dynamic topics", FitDynamicTopics()),
                 ]
             )),
@@ -99,16 +102,6 @@ def main():
         ],
         verbose = True
     )
-    """
-    pipeline = Pipeline(
-        steps=[
-            ("Setup virtual machines", SetupVirtualMachines(VIRTUAL_MACHINES)),
-            ("Preprocess dataset", PreprocessDataset(VIRTUAL_MACHINES, DATASET_URL)),
-        ],
-        verbose = True
-    )
-    """
-
     pipeline.fit_transform(None)
     
 if __name__ == "__main__":

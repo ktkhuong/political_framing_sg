@@ -8,7 +8,7 @@ from models.DynamicTopics import DynamicTopics
 import warnings
 
 class FitDynamicTopics(BaseEstimator, TransformerMixin):
-    def __init__(self, min_n_components=30, max_n_components=50, n_terms=20):
+    def __init__(self, min_n_components=25, max_n_components=90, n_terms=20):
         self.min_n_components = min_n_components
         self.max_n_components = max_n_components
         self.n_terms = n_terms
