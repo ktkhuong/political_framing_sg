@@ -15,11 +15,11 @@ logging.basicConfig(
     #filename=f"out/{socket.gethostname()}.log",
     #filemode="w",
     format="%(asctime)s - %(funcName)s - %(message)s", 
-    level=logging.DEBUG,
-    #handlers=[
-    #    logging.FileHandler(f"out/{socket.gethostname()}.log"),
-    #    logging.StreamHandler()
-    #]
+    level=logging.INFO,
+    handlers=[
+        logging.FileHandler(f"out/{socket.gethostname()}.log"),
+        logging.StreamHandler()
+    ]
 )
 
 def clear_dir(path):
