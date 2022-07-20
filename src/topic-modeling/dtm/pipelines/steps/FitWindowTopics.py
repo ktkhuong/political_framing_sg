@@ -34,25 +34,14 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         
         for t in threads:
             t.join()
-
-    def setup(self, host):
-        logger = logging.getLogger(__name__)
-        logger.message(f"{host} setup ...")
-        commands = [
-            "sudo rm -rf *",
-            "git clone -b cloud --single-branch https://github.com/ktkhuong/sgparl.git cloud",
-            "sudo chmod 777 cloud/data",
-        ]
-        batch = ";".join(commands)
-        p = subprocess.Popen(f'plink -i {self.PRIVATE_KEY} -batch sgparl@{host} "{batch}"', creationflags=subprocess.CREATE_NEW_CONSOLE)
-        p.wait()
         
     def fit_windows(self, host):
         commands = [
+            #"sudo wget -P cloud/data https://github.com/ktkhuong/sgparl/releases/download/w2v/w2v.model",
             "cd cloud",
             "python3 -m venv env",
             "source env/bin/activate",
-            "pip install -r requirements.txt",
+            "pip install -r requirements.txt",            
             "python3 main.py -f",
         ]
         batch = ";".join(commands)
