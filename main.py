@@ -26,7 +26,7 @@ def clear_dir(path):
 def fit_window_topics():
     logger = logging.getLogger(__name__)
 
-    clear_dir(OUT_PATH)
+    #clear_dir(OUT_PATH)
 
     # 1. Read time windows
     time_windows = [TimeWindow.load(DATA_PATH+"/"+f) for f in os.listdir("data") if f.endswith(".pkl") and not f.startswith("vocab")]
@@ -53,7 +53,7 @@ def fit_window_topics():
         logger.info(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; coherence = {time_window.coherence};")
         logger.info("-----------------------------------------------------------------------------")
 
-    clear_dir(DATA_PATH)
+    #clear_dir(DATA_PATH)
 
 def preprocess(parl_num):
     logger = logging.getLogger(__name__)
