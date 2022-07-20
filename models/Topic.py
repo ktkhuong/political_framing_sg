@@ -28,5 +28,5 @@ class Topic:
     def coherence(self, w2v: Word2Vec):
         comb = list(combinations(self.top_terms(), 2))
         total_distance = sum(w2v.wv.similarity(wi, wj) for wi, wj in comb)
-        self.coh = float(total_distance) / len(comb)
-        return self.coh
+        self.coherence = float(total_distance) / len(comb)
+        return self.coherence
