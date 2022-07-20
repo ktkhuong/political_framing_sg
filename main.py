@@ -11,6 +11,13 @@ DATA_PATH = "data"
 OUT_PATH = "out"
 DATASET_PATH = "dataset/parliament"
 
+logging.basicConfig(
+    filename=f"out/{socket.gethostname()}.log",
+    filemode="w",
+    format="%(asctime)s - %(funcName)s - %(message)s", 
+    level=logging.INFO
+)
+
 def clear_dir(path):
     for f in os.listdir(path):
         fp = f"{path}/{f}"
@@ -82,20 +89,8 @@ def main():
             parl_num = int(a)
 
     if choice == 1:
-        logging.basicConfig(
-            filename=f"out/{socket.gethostname()}_fit.log",
-            filemode="w",
-            format="%(asctime)s - %(funcName)s - %(message)s", 
-            level=logging.INFO
-        )
         fit_window_topics()
     elif choice == 2:
-        logging.basicConfig(
-            filename=f"out/{socket.gethostname()}_preprocess.log",
-            filemode="w",
-            format="%(asctime)s - %(funcName)s - %(message)s", 
-            level=logging.INFO
-        )
         preprocess(parl_num)
         
 def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_components=25):
