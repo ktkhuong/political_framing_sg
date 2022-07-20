@@ -39,8 +39,8 @@ class PreprocessDataset(BaseEstimator, TransformerMixin):
         logger = logging.getLogger(__name__)
         logger.message(f"{host} setup ...")
         commands = [
-            f"sudo wget -P /cloud {self.dataset_url}",
-            "sudo unzip /cloud/parliament.zip -d cloud/dataset",
+            f"sudo wget -P /home/sgparl/cloud {self.dataset_url}",
+            "sudo unzip cloud/parliament.zip -d cloud/dataset",
             "cd cloud",
             "python3 -m venv env",
             "source env/bin/activate",
