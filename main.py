@@ -6,6 +6,7 @@ from sklearn.decomposition import NMF
 from read_dataset import speeches_from_json
 import pandas as pd
 from preprocess import preprocess_df
+from models.CoherenceModel import Word2VecCoherenceModel, CvCoherenceModel
 
 DATA_PATH = "data"
 OUT_PATH = "out"
@@ -23,8 +24,13 @@ def fit_window_topics():
 
     # 1. Read time windows
     time_windows = [TimeWindow.load(DATA_PATH+"/"+f) for f in os.listdir("data") if f.endswith(".pkl") and not f.startswith("vocab")]
-    # 2. Read w2v.model 
-    w2v = Word2Vec.load(DATA_PATH+"/w2v.model")
+    # 2. Read coherence_model.model 
+    if os.path.exists(DATA_PATH+"/w2v.model"):
+        coherence_model = Word2VecCoherenceModel.load(DATA_PATH+"/w2v.model")
+    elif os.path.exists(DATA_PATH+"/cv.model"):
+        coherence_model = CvCoherenceModel.load(DATA_PATH+"/cv.model")
+    else:
+        raise RuntimeError("Coherence model NOT found!")
     # 3. Read vocab
     with open(DATA_PATH+'/vocab.pkl', 'rb') as f:
         vocab = pickle.load(f)
@@ -35,7 +41,7 @@ def fit_window_topics():
         topics, coherence = choose_topics(
             time_window.tfidf_matrix, 
             vocab, 
-            w2v, 
+            coherence_model, 
             #min_n_components=time_window.n_titles-20, 
             #max_n_components=time_window.n_titles+20,
         )
@@ -103,7 +109,7 @@ def main():
         )
         preprocess(parl_num)
         
-def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_components=25):
+def choose_topics(tfidf_matrix, vocab, coherence_model, min_n_components=10, max_n_components=25):
     logger = logging.getLogger(__name__)
 
     best_coherence = float('-inf')
@@ -113,7 +119,7 @@ def choose_topics(tfidf_matrix, vocab, w2v, min_n_components=10, max_n_component
         w, h = fit_nmf(tfidf_matrix, n_components)
         topics = [Topic(term_weights, doc_weights, vocab) for term_weights, doc_weights in zip(h, w.T)]
 
-        avg_coherence = sum(topic.coherence(w2v) for topic in topics) / len(topics)
+        avg_coherence = sum(coherence_model.compute_coherence(topic) for topic in topics) / len(topics)
         coherences.append(avg_coherence)
         if avg_coherence > best_coherence:
             best_coherence = avg_coherence
