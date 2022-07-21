@@ -15,12 +15,12 @@ class ExportData(BaseEstimator, TransformerMixin):
         for window in time_windows:
             window.save(f"{self.EXPORT_PATH}/{window.id}.pkl")
         if type(coherence_model) is Word2VecCoherenceModel:
-            coherence_model.save("{self.EXPORT_PATH}/w2v.model")
+            coherence_model.save(f"{self.EXPORT_PATH}/w2v.model")
         elif type(coherence_model) is CvCoherenceModel:
-            coherence_model.save("{self.EXPORT_PATH}/cv.model")
+            coherence_model.save(f"{self.EXPORT_PATH}/cv.model")
         else:
             raise RuntimeError("Unknown coherence model!")
-        with open('{self.EXPORT_PATH}/vocab.pkl', 'wb') as f:
+        with open(f'{self.EXPORT_PATH}/vocab.pkl', 'wb') as f:
             pickle.dump(vocab, f)
         return X
 

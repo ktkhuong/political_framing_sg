@@ -25,7 +25,6 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
 
     def run_machine(self, used, target):
         threads = []
-        #for host, _ in self.machines:
         for i in used:
             host, _ = self.machines[i-1]
             t = threading.Thread(target=target, args=(host,))
@@ -37,7 +36,8 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         
     def fit_windows(self, host):
         commands = [
-            "sudo wget -P cloud/data https://github.com/ktkhuong/sgparl/releases/download/w2v/w2v.model",
+            #"sudo wget -P cloud/data https://github.com/ktkhuong/sgparl/releases/download/w2v/w2v.model",
+            "sudo wget -P cloud/data https://github.com/ktkhuong/sgparl/releases/download/w2v/cv.model",
             "cd cloud",
             "python3 -m venv env",
             "source env/bin/activate",

@@ -37,7 +37,7 @@ class PreprocessDataset(BaseEstimator, TransformerMixin):
 
     def preprocess(self, host, parl_num):
         logger = logging.getLogger(__name__)
-        logger.message(f"{host} setup ...")
+        logger.message(f"{host} preprocessing ...")
         commands = [
             f"sudo wget -P /home/sgparl/cloud {self.dataset_url}",
             "sudo unzip cloud/parliament.zip -d cloud/dataset",
