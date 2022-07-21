@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 import sqlite3
+from collections import defaultdict
 
 class SaveToDb(BaseEstimator, TransformerMixin):
     TABLE_WINDOW_TOPICS = "window_topics"
@@ -15,16 +16,22 @@ class SaveToDb(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        self.save_topics(X.time_windows)
+        self.save_window_topics(X.time_windows)
         self.save_speech2topic(X.time_windows)
         self.save_dynamic_topics(X)
         self.save_wt2dt(X)
         return X
 
-    def save_topics(self, time_windows):
+    def save_window_topics(self, time_windows):
         conn = sqlite3.connect(self.db_name)
-        data = {topic.id: " ".join(topic.top_terms()) for time_window in time_windows for topic in time_window.topics}
-        df_window_topics = pd.DataFrame(data.items(), columns=["id","topic"]).set_index("id")
+        #data = {topic.id: " ".join(topic.top_terms()) for time_window in time_windows for topic in time_window.topics}
+        data = defaultdict(list)
+        for time_window in time_windows:
+            for topic in time_window.topics:
+                data['id'].append(topic.id)
+                data['topic'].append(" ".join(topic.top_terms()))
+                data['coherence'].append(topic.coherence)
+        df_window_topics = pd.DataFrame.from_dict(data).set_index("id")
         df_window_topics.to_sql(name=self.TABLE_WINDOW_TOPICS, con=conn)
         conn.close()
 
@@ -39,11 +46,14 @@ class SaveToDb(BaseEstimator, TransformerMixin):
 
     def save_dynamic_topics(self, dynamic_topics):
         conn = sqlite3.connect(self.db_name)
-
-        data = {i: " ".join(topic.top_terms()) for i, topic in enumerate(dynamic_topics.topics)}
-        df_dynamic_topics = pd.DataFrame(data.items(), columns=["id","topic"]).set_index("id")
+        #data = {i: " ".join(topic.top_terms()) for i, topic in enumerate(dynamic_topics.topics)}
+        data = defaultdict(list)
+        for i, topic in enumerate(dynamic_topics.topics):
+            data['id'].append(i)
+            data['topic'].append(" ".join(topic.top_terms()))
+            data['coherence'].append(topic.coherence)
+        df_dynamic_topics = pd.DataFrame.from_dict(data).set_index("id")
         df_dynamic_topics.to_sql(name=self.TABLE_DYNAMIC_TOPICS, con=conn)
-
         conn.close()
 
     def save_wt2dt(self, dynamic_topics):

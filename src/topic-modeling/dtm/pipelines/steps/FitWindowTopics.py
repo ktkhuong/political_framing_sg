@@ -15,13 +15,13 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        w2v, vocab, time_windows = X
+        coherence_model, vocab, time_windows = X
 
         used = self.upload_data()
         self.run_machine(used, self.fit_windows)
         self.download_data(used)
         time_windows = self.concat()        
-        return w2v, vocab, time_windows
+        return coherence_model, vocab, time_windows
 
     def run_machine(self, used, target):
         threads = []
@@ -37,11 +37,11 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         
     def fit_windows(self, host):
         commands = [
-            #"sudo wget -P cloud/data https://github.com/ktkhuong/sgparl/releases/download/w2v/w2v.model",
+            "sudo wget -P cloud/data https://github.com/ktkhuong/sgparl/releases/download/w2v/w2v.model",
             "cd cloud",
             "python3 -m venv env",
             "source env/bin/activate",
-            "pip install -r requirements.txt",            
+            "pip install -r requirements.txt",
             "python3 main.py -f",
         ]
         batch = ";".join(commands)
@@ -60,8 +60,8 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
             used.add(i)
             p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/{year}*.pkl machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
             p.wait()
-            p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/w2v.model machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
-            p.wait()
+            #p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/w2v.model machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
+            #p.wait()
             p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/vocab.pkl machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
             p.wait()
             i += 1

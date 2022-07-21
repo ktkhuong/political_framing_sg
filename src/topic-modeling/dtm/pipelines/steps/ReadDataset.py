@@ -13,6 +13,7 @@ class ReadDataset(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
+        """
         logger = logging.getLogger(__name__)
 
         frames = [pd.read_csv(f"{self.DATASET_PATH}/{f}", usecols=["date", "quarter", "section", "title", "member", "preprocessed_speech"])
@@ -21,5 +22,12 @@ class ReadDataset(BaseEstimator, TransformerMixin):
             frame['date'] = pd.to_datetime(frame['date'])
         df = pd.concat(frames)
         
+        logger.message(f"Dataset shape: {df.shape}")
+        return df
+        """
+        logger = logging.getLogger(__name__)
+
+        df = pd.read_csv("sgparl.csv", usecols=["date", "quarter", "section", "title", "member", "preprocessed_speech"])
+        df['date'] = pd.to_datetime(df['date'])
         logger.message(f"Dataset shape: {df.shape}")
         return df

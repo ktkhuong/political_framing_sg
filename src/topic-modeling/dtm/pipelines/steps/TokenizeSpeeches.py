@@ -15,7 +15,7 @@ extra_stop_words = {
     # salutation
     "mr", "sir", "madam", "speaker", "minister", "member", "members", "honourable", 
     # parliamentary specific words
-    "bill", 
+    "bill",
     "act", "amendment", "applause", "ask", "beg", "chair", "chairman", "clause", 
     "constitution", "laughter", "mentioned", "motion", "order", "ordinance", "party", "question", "regard", "report", "second", "sitting"
 }

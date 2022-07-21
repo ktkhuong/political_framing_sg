@@ -2,6 +2,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 import pickle
 
 class ExportData(BaseEstimator, TransformerMixin):
+    EXPORT_PATH = 'out'
+
     def __init__(self):
         pass
 
@@ -9,11 +11,11 @@ class ExportData(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        w2v, vocab, time_windows = X
+        coherence_model, vocab, time_windows = X
         for window in time_windows:
-            window.save(f"out/{window.id}.pkl")
-        w2v.save("out/w2v.model")
-        with open('out/vocab.pkl', 'wb') as f:
+            window.save(f"{self.EXPORT_PATH}/{window.id}.pkl")
+        coherence_model.save("{self.EXPORT_PATH}/coherence_model.model")
+        with open('{self.EXPORT_PATH}/vocab.pkl', 'wb') as f:
             pickle.dump(vocab, f)
         return X
 

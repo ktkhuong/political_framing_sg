@@ -1,8 +1,8 @@
 import pandas as pd
-from models.CoherenceModel import Word2VecCoherenceModel
 from sklearn.base import BaseEstimator, TransformerMixin
-from gensim.models import Word2Vec
+from gensim.corpora.dictionary import Dictionary
 from sklearn.feature_extraction.text import TfidfVectorizer
+from models.CoherenceModel import CvCoherenceModel
 import warnings
 
 class FitWord2VecAndTfidf(BaseEstimator, TransformerMixin):
@@ -18,8 +18,10 @@ class FitWord2VecAndTfidf(BaseEstimator, TransformerMixin):
         df = X
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            speeches = df["tokenized_speech"].values
-            coherence_model = Word2VecCoherenceModel(Word2Vec([speech.split() for speech in speeches], min_count=self.min_count))            
+            texts = [speech.split() for speech in df["tokenized_speech"].values]
+            dictionary = Dictionary(texts)
+            corpus = texts#[dictionary.doc2bow(text) for text in texts]
+            coherence_model = CvCoherenceModel(corpus=corpus, dictionary=dictionary)
             tfidf = TfidfVectorizer(norm='l2', max_df=self.max_df, min_df=self.min_df)
-            tfidf.fit(speeches)
+            tfidf.fit(df["tokenized_speech"].values)
         return df, coherence_model, tfidf

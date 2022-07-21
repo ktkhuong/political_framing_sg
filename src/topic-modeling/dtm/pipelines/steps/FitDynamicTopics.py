@@ -19,7 +19,7 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         logger = logging.getLogger(__name__)
 
-        w2v, vocab, time_windows = X
+        coherence_model, vocab, time_windows = X
         stacked = np.vstack([time_window.top_term_weights(self.n_terms) for time_window in time_windows])
         keep_terms = stacked.sum(axis=0) != 0
         keep_term_names = np.array(vocab)[keep_terms]
@@ -28,14 +28,14 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
         topics, coherence = self.choose_topics(
             tfidf_matrix, 
             keep_term_names, 
-            w2v, 
+            coherence_model, 
             self.min_n_components, 
             min(self.max_n_components, tfidf_matrix.shape[0])
         )
         logger.message(f"Dynamic topics: {len(topics)} topics; coherence = {coherence}")
         return DynamicTopics(topics, coherence, time_windows)
 
-    def choose_topics(self, tfidf_matrix, vocab, w2v, min_n_components=10, max_n_components=25):
+    def choose_topics(self, tfidf_matrix, vocab, coherence_model, min_n_components=10, max_n_components=25):
         best_coherence = float('-inf')
         best_topics = None
         coherences = []
@@ -43,7 +43,7 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
             w, h = self.fit_nmf(tfidf_matrix, n_components)
             topics = [Topic(term_weights, doc_weights, vocab) for term_weights, doc_weights in zip(h, w.T)]
 
-            avg_coherence = sum(topic.coherence(w2v) for topic in topics) / len(topics)
+            avg_coherence = sum(coherence_model.compute_coherence(topic) for topic in topics) / len(topics)
             coherences.append(avg_coherence)
             if avg_coherence > best_coherence:
                 best_coherence = avg_coherence
