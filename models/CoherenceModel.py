@@ -37,7 +37,7 @@ class CvCoherenceModel(BaseCoherenceModel):
         self.dictionary = dictionary
 
     def compute_coherence(self, topic, n_terms=Topic.N_TOP_TERMS):
-        cm = CoherenceModel(topics=topic.top_terms(n_terms), corpus=self.corpus, dictionary=self.dictionary, coherence='c_v')
+        cm = CoherenceModel(topics=topic.top_terms(n_terms), texts=self.corpus, dictionary=self.dictionary, coherence='c_v')
         return cm.get_coherence()
 
     def save(self, path):
