@@ -25,11 +25,11 @@ def fit_window_topics():
     # 1. Read time windows
     time_windows = [TimeWindow.load(DATA_PATH+"/"+f) for f in os.listdir("data") if f.endswith(".pkl") and not f.startswith("vocab")]
     # 2. Read coherence_model.model 
-    print("here", os.path.exists(DATA_PATH+"/w2v.model"), os.path.exists(DATA_PATH+"/cv.model"))
     if os.path.exists(DATA_PATH+"/w2v.model"):
         coherence_model = Word2VecCoherenceModel.load(DATA_PATH+"/w2v.model")
     elif os.path.exists(DATA_PATH+"/cv.model"):
         coherence_model = CvCoherenceModel.load(DATA_PATH+"/cv.model")
+        print("here")
     else:
         raise RuntimeError("Coherence model NOT found!")
     # 3. Read vocab
