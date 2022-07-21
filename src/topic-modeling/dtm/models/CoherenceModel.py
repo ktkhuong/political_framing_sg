@@ -27,6 +27,10 @@ class Word2VecCoherenceModel(BaseCoherenceModel):
     def save(self, path):
         self.w2v.save(path)
 
+    @staticmethod
+    def load(path):
+        return Word2VecCoherenceModel(Word2Vec.load(path))
+
 class CvCoherenceModel(BaseCoherenceModel):
     def __init__(self, corpus, dictionary: Dictionary):
         self.corpus = corpus
@@ -39,3 +43,8 @@ class CvCoherenceModel(BaseCoherenceModel):
     def save(self, path):
         with open(path, 'wb') as f:
             pickle.dump(self, f)
+
+    @staticmethod
+    def load(path):
+        with open(path, 'rb') as f:
+            return pickle.load(f)
