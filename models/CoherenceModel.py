@@ -29,7 +29,7 @@ class Word2VecCoherenceModel(BaseCoherenceModel):
 
     @staticmethod
     def load(path):
-        Word2Vec.load(path)
+        return Word2VecCoherenceModel(Word2Vec.load(path))
 
 class CvCoherenceModel(BaseCoherenceModel):
     def __init__(self, corpus, dictionary: Dictionary):
