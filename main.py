@@ -40,7 +40,6 @@ def fit_window_topics(min_k=10, max_k=25):
     # 4. Fit window topics
     for time_window in time_windows:
         logger.info(f"Fitting {time_window.id} ...")
-        print(f"print Fitting {time_window.id} ...")
         topics, coherence = choose_topics(
             time_window.tfidf_matrix, 
             vocab, 
