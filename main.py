@@ -7,6 +7,7 @@ from read_dataset import speeches_from_json
 import pandas as pd
 from preprocess import preprocess_df
 from models.CoherenceModel import Word2VecCoherenceModel, CvCoherenceModel
+from optparse import OptionParser
 
 DATA_PATH = "data"
 OUT_PATH = "out"
@@ -17,7 +18,7 @@ def clear_dir(path):
         fp = f"{path}/{f}"
         os.remove(fp)
 
-def fit_window_topics():
+def fit_window_topics(min_k=10, max_k=25):
     logger = logging.getLogger(__name__)
 
     clear_dir(OUT_PATH)
@@ -44,8 +45,8 @@ def fit_window_topics():
             time_window.tfidf_matrix, 
             vocab, 
             coherence_model, 
-            #min_n_components=time_window.n_titles-20, 
-            #max_n_components=time_window.n_titles+20,
+            min_n_components=min_k, 
+            max_n_components=max_k,
         )
         for i, topic in enumerate(topics):
             topic.id = f"{time_window.id}/{i}"
@@ -74,23 +75,16 @@ def preprocess(parl_num):
     logger.info(f"Data frame: {df.shape}")
 
 def main():
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "fpn:")
-    except getopt.GetoptError as err:
-        print(err)
-        sys.exit(2)
+    parser = OptionParser(usage="usage: %prog [options]")
+    parser.add_option("-f", "--fit", action="store_true", type="string", dest="run_fit", help="fit window topics")
+    parser.add_option("-k", "--num-topics", action="store", type="string", dest="num_topics", help="range of number of topics, comma separated", default="10,25")
+    parser.add_option("-p", "--preprocess", action="store_true", type="string", dest="run_preprocess", help="preprocess data")
+    parser.add_option("-n", "--parlnum", action="store", type=int, dest="parl_num", help="number of available virtual machines", default=1)
+    (options, args) = parser.parse_args()
+    if options.run_fit == None and options.run_preprocess == None:
+        parser.error("Must specify either -f or -p to dataset")
 
-    choice = 0
-    parl_num = 0
-    for o, a in opts:
-        if o == "-f":
-            choice = 1
-        elif o == "-p":
-            choice = 2
-        elif o == "-n":
-            parl_num = int(a)
-
-    if choice == 1:
+    if options.run_fit:
         logging.basicConfig(
             format="%(asctime)s - %(funcName)s - %(message)s", 
             level=logging.INFO,
@@ -99,8 +93,9 @@ def main():
                 logging.StreamHandler()
             ]
         )
-        fit_window_topics()
-    elif choice == 2:
+        min_k, max_k = list(map(int, options.num_topics.split(",")))
+        fit_window_topics(min_k, max_k)
+    elif options.run_preprocess:
         logging.basicConfig(
             format="%(asctime)s - %(funcName)s - %(message)s", 
             level=logging.INFO,
@@ -109,7 +104,7 @@ def main():
                 logging.StreamHandler()
             ]
         )
-        preprocess(parl_num)
+        preprocess(options.parl_num)
         
 def choose_topics(tfidf_matrix, vocab, coherence_model, min_n_components=10, max_n_components=25):
     logger = logging.getLogger(__name__)
