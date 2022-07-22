@@ -25,7 +25,6 @@ def fit_window_topics():
     # 1. Read time windows
     time_windows = [TimeWindow.load(DATA_PATH+"/"+f) for f in os.listdir("data") if f.endswith(".pkl") and not f.startswith("vocab")]
     # 2. Read coherence_model.model 
-    print("model files:", os.path.exists(DATA_PATH+"/w2v.model"), os.path.exists(DATA_PATH+"/cv.model"))
     if os.path.exists(DATA_PATH+"/w2v.model"):
         logger.info("using Word2VecCoherenceModel")
         coherence_model = Word2VecCoherenceModel.load(DATA_PATH+"/w2v.model")
@@ -140,6 +139,4 @@ def fit_nmf(tfidf_matrix, n_components):
     return w, h
 
 if __name__ == "__main__":
-    #main()
-    coherence_model = CvCoherenceModel.load("data/cv.model")
-    print(coherence_model.corpus)
+    main()
