@@ -76,9 +76,9 @@ def preprocess(parl_num):
 
 def main():
     parser = OptionParser(usage="usage: %prog [options]")
-    parser.add_option("-f", "--fit", action="store_true", type="string", dest="run_fit", help="fit window topics")
+    parser.add_option("-f", "--fit", action="store_true", dest="run_fit", help="fit window topics")
     parser.add_option("-k", "--num-topics", action="store", type="string", dest="num_topics", help="range of number of topics, comma separated", default="10,25")
-    parser.add_option("-p", "--preprocess", action="store_true", type="string", dest="run_preprocess", help="preprocess data")
+    parser.add_option("-p", "--preprocess", action="store_true", dest="run_preprocess", help="preprocess data")
     parser.add_option("-n", "--parlnum", action="store", type=int, dest="parl_num", help="number of available virtual machines", default=1)
     (options, args) = parser.parse_args()
     if options.run_fit == None and options.run_preprocess == None:
