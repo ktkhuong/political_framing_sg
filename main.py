@@ -29,7 +29,6 @@ def fit_window_topics():
         coherence_model = Word2VecCoherenceModel.load(DATA_PATH+"/w2v.model")
     elif os.path.exists(DATA_PATH+"/cv.model"):
         coherence_model = CvCoherenceModel.load(DATA_PATH+"/cv.model")
-        print("here")
     else:
         raise RuntimeError("Coherence model NOT found!")
     # 3. Read vocab
@@ -138,5 +137,6 @@ def fit_nmf(tfidf_matrix, n_components):
     return w, h
 
 if __name__ == "__main__":
-    main()
-
+    #main()
+    coherence_model = CvCoherenceModel.load("data/cv.model")
+    print(coherence_model.corpus)
