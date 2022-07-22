@@ -22,7 +22,8 @@ class Word2VecCoherenceModel(BaseCoherenceModel):
     def compute_coherence(self, topic: Topic, n_terms=Topic.N_TOP_TERMS):
         comb = list(combinations(topic.top_terms(n_terms), 2))
         total_distance = sum(self.w2v.wv.similarity(wi, wj) for wi, wj in comb)
-        return float(total_distance) / len(comb)
+        topic.coherence = float(total_distance) / len(comb)
+        return topic.coherence
 
     def save(self, path):
         self.w2v.save(path)
@@ -36,9 +37,10 @@ class CvCoherenceModel(BaseCoherenceModel):
         self.corpus = corpus
         self.dictionary = dictionary
 
-    def compute_coherence(self, topic, n_terms=Topic.N_TOP_TERMS):
+    def compute_coherence(self, topic: Topic, n_terms=Topic.N_TOP_TERMS):
         cm = CoherenceModel(topics=topic.top_terms(n_terms), texts=self.corpus, dictionary=self.dictionary, coherence='c_v')
-        return cm.get_coherence()
+        topic.coherence = cm.get_coherence()
+        return topic.coherence
 
     def save(self, path):
         with open(path, 'wb') as f:
