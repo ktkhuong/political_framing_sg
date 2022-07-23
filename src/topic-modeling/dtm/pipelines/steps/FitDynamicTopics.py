@@ -36,6 +36,8 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
         return DynamicTopics(topics, coherence, time_windows)
 
     def choose_topics(self, tfidf_matrix, vocab, coherence_model, min_n_components=10, max_n_components=25):
+        logger = logging.getLogger(__name__)
+
         best_coherence = float('-inf')
         best_topics = None
         coherences = []
@@ -48,7 +50,8 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
             if avg_coherence > best_coherence:
                 best_coherence = avg_coherence
                 best_topics = topics
-
+            logger.message(f"k = {n_components}; coherence = {avg_coherence}")
+        logger.message(f"Best: k = {len(best_topics)}; coherence = {best_coherence}")
         return best_topics, best_coherence
 
     def fit_nmf(self, tfidf_matrix, n_components):

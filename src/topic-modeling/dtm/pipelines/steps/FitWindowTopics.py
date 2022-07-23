@@ -8,8 +8,10 @@ from models.TimeWindow import TimeWindow
 class FitWindowTopics(BaseEstimator, TransformerMixin):
     PRIVATE_KEY = "ssh/sgparl_private.ppk"
 
-    def __init__(self, machines):
+    def __init__(self, machines, min_n_components=10, max_n_components=25):
         self.machines = machines
+        self.min_n_components = min_n_components
+        self.max_n_components = max_n_components
 
     def fit(self, X, y=None):
         return self
@@ -36,13 +38,13 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         
     def fit_windows(self, host):
         commands = [
-            #"sudo wget -P cloud/data https://github.com/ktkhuong/sgparl/releases/download/w2v/w2v.model",
-            "sudo wget -P cloud/data https://github.com/ktkhuong/sgparl/releases/download/w2v/cv.model",
+            "sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v/w2v_2015_2019_bow.model",
+            "sudo mv cloud/data/w2v_2015_2019_bow.model cloud/data/w2v.model",
             "cd cloud",
             "python3 -m venv env",
             "source env/bin/activate",
             "pip install -r requirements.txt",
-            "python3 main.py -f",
+            f"python3 main.py -f -k {self.min_n_components},{self.max_n_components}",
         ]
         batch = ";".join(commands)
         p = subprocess.Popen(f'plink -i {self.PRIVATE_KEY} -batch sgparl@{host} "{batch}"', creationflags=subprocess.CREATE_NEW_CONSOLE)

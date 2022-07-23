@@ -3,7 +3,7 @@ from models.TimeWindow import TimeWindow
 from sklearn.base import BaseEstimator, TransformerMixin
 import logging
 
-class BuildTimeWindows(BaseEstimator, TransformerMixin):
+class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
     def __init__(self):
         pass
 

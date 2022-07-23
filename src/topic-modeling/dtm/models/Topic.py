@@ -10,6 +10,7 @@ class Topic:
         self.document_weights = document_weights
         self.vocab = vocab
         self.id = None
+        self.coherence = 0
 
     def top_term_indices(self, n_top=N_TOP_TERMS):
         return np.argsort(self.term_weights)[::-1][:n_top]
@@ -24,9 +25,3 @@ class Topic:
         top_word_index = [word_to_index[word] for word in self.top_terms(n_top)]
         row[top_word_index] = self.term_weights[top_word_index]
         return row
-
-    def coherence(self, w2v: Word2Vec):
-        comb = list(combinations(self.top_terms(), 2))
-        total_distance = sum(w2v.wv.similarity(wi, wj) for wi, wj in comb)
-        self.coherence = float(total_distance) / len(comb)
-        return self.coherence
