@@ -44,8 +44,8 @@ def fit_window_topics(min_k=10, max_k=25):
             time_window.tfidf_matrix, 
             vocab, 
             coherence_model, 
-            min_n_components=time_window.n_titles-10, 
-            max_n_components=time_window.n_titles+10,
+            min_n_components=min_k, 
+            max_n_components=max_k,
         )
         for i, topic in enumerate(topics):
             topic.id = f"{time_window.id}/{i}"
