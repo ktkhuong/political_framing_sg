@@ -9,7 +9,20 @@ from sklearn.base import BaseEstimator, TransformerMixin
 ###################################
 #### stop words ####
 ###################################
-stop_words = set(stopwords.words('english'))
+#stop_words = set(stopwords.words('english'))
+def load_stopwords(path="stopwords.txt" ):
+	"""
+	Load stopwords from a file into a set.
+	"""
+	stopwords = set()
+	with open(path) as f:
+		lines = f.readlines()
+		for l in lines:
+			l = l.strip()
+			if len(l) > 0:
+				stopwords.add(l)
+	return stopwords
+stop_words = load_stopwords()
 extra_stop_words = {
     "please", "would", "use", "also", "thank", 
     # salutation
@@ -61,8 +74,8 @@ class TokenizeSpeeches(BaseEstimator, TransformerMixin):
     def remove_stopwords(self, tokens):
         return [token for token in tokens if token not in stop_words and len(token) > 2]
 
-    def lemmatize(self, tokens):
+    def lemmatize(self, tokens, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
         doc = self.nlp(" ".join(tokens))
-        return [token.lemma_ for token in doc]
+        return [token.lemma_ for token in doc if token.pos_ in allowed_postags]
 
     

@@ -54,7 +54,7 @@ def lowercase(df_input, cols):
       df_copy[c] = df_copy[c].str.lower()
     return df_copy
 
-def drop_empty(df_input, cols):
+def drop_empty(df_input, cols) -> pd.DataFrame:
     for c in cols:
       df_input = df_input[df_input[c] != ""]
     return df_input

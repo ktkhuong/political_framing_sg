@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 import pandas as pd
+from collections import defaultdict
 
 class TimeWindow:
     def __init__(self, id, speech_ids, tfidf_matrix, n_titles):
@@ -29,7 +30,8 @@ class TimeWindow:
         Assuming a single membership model, i.e. each speech has 1 topic with the highest weight 
         """
         speech_topic_weights = np.array([topic.document_weights for topic in self.topics]).T # shape = (num_speeches, num_topics)
-        return {self.speech_ids[speech]: self.topics[topic].id for speech, topic in enumerate(np.argmax(speech_topic_weights, axis=1))}
+        highest_weights = np.argmax(speech_topic_weights, axis=1)
+        return {self.speech_ids[i]: (self.topics[topic].id, speech_topic_weights[i,topic]) for i, topic in enumerate(highest_weights)}
 
     def top_term_weights(self, n_top):
         return [topic.top_term_weights(n_top) for topic in self.topics]

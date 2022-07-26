@@ -41,6 +41,8 @@ class SaveToDb(BaseEstimator, TransformerMixin):
         for time_window in time_windows:
             speech2topic = {**speech2topic, **time_window.speech2topic}
         df_speech2topic = pd.DataFrame(speech2topic.items(), columns=["speech","topic"]).set_index("speech")
+        df_speech2topic["weight"] = df_speech2topic["topic"].map(lambda item: item[1])
+        df_speech2topic["topic"] = df_speech2topic["topic"].map(lambda item: item[0])
         df_speech2topic.to_sql(name=self.TABLE_SPEECH_2_TOPIC, con=conn)
         conn.close()
 
