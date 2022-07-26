@@ -115,7 +115,7 @@ def choose_topics(tfidf_matrix, vocab, coherence_model, min_n_components=10, max
         w, h = fit_nmf(tfidf_matrix, n_components)
         topics = [Topic(term_weights, doc_weights, vocab) for term_weights, doc_weights in zip(h, w.T)]
 
-        avg_coherence = sum(coherence_model.compute_coherence(topic) for topic in topics) / len(topics)
+        avg_coherence = sum(coherence_model.compute_coherence(topic, n_terms = 20) for topic in topics) / len(topics)
         coherences.append(avg_coherence)
         if avg_coherence > best_coherence:
             best_coherence = avg_coherence
