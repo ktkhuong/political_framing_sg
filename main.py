@@ -2,16 +2,26 @@ import os, pickle, warnings, logging, socket, getopt, sys, re
 from models.TimeWindow import TimeWindow
 from models.Topic import Topic
 from gensim.models import Word2Vec
-from sklearn.decomposition import NMF
 from read_dataset import speeches_from_json
 import pandas as pd
 from preprocess import preprocess_df
 from models.CoherenceModel import Word2VecCoherenceModel, CvCoherenceModel
 from optparse import OptionParser
+from nmf import choose_topics
+import numpy as np
 
 DATA_PATH = "data"
 OUT_PATH = "out"
 DATASET_PATH = "dataset/parliament"
+
+logging.basicConfig(
+    format="%(asctime)s - %(funcName)s - %(message)s", 
+    level=logging.INFO,
+    handlers=[
+        logging.FileHandler(f"out/{socket.gethostname()}.log"),
+        logging.StreamHandler()
+    ]
+)
 
 def clear_dir(path):
     for f in os.listdir(path):
@@ -57,6 +67,41 @@ def fit_window_topics(min_k=10, max_k=25):
 
     clear_dir(DATA_PATH)
 
+def fit_subtopics(time_window: TimeWindow, vocab, coherence_model):
+    logger = logging.getLogger(__name__)
+    logger.info(f"Fitting subtopic of {time_window.id} ...")
+
+    W = time_window.W
+    n_docs, n_topics = W.shape
+    logger.info(f"W shape:", W.shape)
+    max_weights = np.max(W, axis=1)
+    included = np.where(max_weights > 0.05)
+    x = np.argmax(W, axis=1)
+    hist, _ = np.histogram(x, bins=range(n_topics+1))
+    for i, freq in enumerate(hist):
+        if freq > 25:
+            logger.info(f"fitting topic {i} freq = {freq}")
+            rows = np.where(x == i)
+            sub_window = TimeWindow(
+                f"{time_window.id}/{i}",
+                time_window.speech_ids[rows],
+                time_window.tfidf_matrix[rows],
+                0
+            )
+            topics, coherence = choose_topics(
+                sub_window.tfidf_matrix, 
+                vocab, 
+                coherence_model, 
+                min_n_components=min(10, time_window.num_speeches), 
+                max_n_components=min(25, time_window.num_speeches),
+            )
+            for j, topic in enumerate(topics):
+                topic.id = f"{time_window.id}/{i}/{j}"
+            sub_window.topics = topics
+            sub_window.coherence = coherence
+            logger.info(f"{sub_window.id}: {sub_window.num_speeches} speeches; {sub_window.num_topics} topics; coherence = {sub_window.coherence};")
+            time_window.sub_windows.append(sub_window)            
+
 def preprocess(parl_num):
     logger = logging.getLogger(__name__)
 
@@ -84,14 +129,6 @@ def main():
         parser.error("Must specify either -f or -p to dataset")
 
     if options.run_fit:
-        logging.basicConfig(
-            format="%(asctime)s - %(funcName)s - %(message)s", 
-            level=logging.INFO,
-            handlers=[
-                logging.FileHandler(f"out/{socket.gethostname()}_fit.log"),
-                logging.StreamHandler()
-            ]
-        )
         min_k, max_k = list(map(int, options.num_topics.split(",")))
         fit_window_topics(min_k, max_k)
     elif options.run_preprocess:
@@ -104,33 +141,7 @@ def main():
             ]
         )
         preprocess(options.parl_num)
-        
-def choose_topics(tfidf_matrix, vocab, coherence_model, min_n_components=10, max_n_components=25):
-    logger = logging.getLogger(__name__)
-
-    best_coherence = float('-inf')
-    best_topics = None
-    coherences = []
-    for n_components in range(min_n_components, max_n_components+1):
-        w, h = fit_nmf(tfidf_matrix, n_components)
-        topics = [Topic(term_weights, doc_weights, vocab) for term_weights, doc_weights in zip(h, w.T)]
-
-        avg_coherence = sum(coherence_model.compute_coherence(topic) for topic in topics) / len(topics)
-        coherences.append(avg_coherence)
-        if avg_coherence > best_coherence:
-            best_coherence = avg_coherence
-            best_topics = topics
-        logger.info(f"k = {n_components}; coherence = {avg_coherence}")
-    logger.info(f"Best: k = {len(best_topics)}; coherence = {best_coherence}")
-    return best_topics, best_coherence
-
-def fit_nmf(tfidf_matrix, n_components):
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        model = NMF(n_components=n_components, init='nndsvd', solver='mu')
-        w = model.fit_transform(tfidf_matrix)
-        h = model.components_
-    return w, h
+    
 
 if __name__ == "__main__":
     main()

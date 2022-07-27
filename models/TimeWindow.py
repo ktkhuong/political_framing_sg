@@ -10,6 +10,7 @@ class TimeWindow:
         self.topics = [] # list of Topic
         self.coherence = 0
         self.n_titles = n_titles
+        self.sub_windows = []
 
     @property
     def num_speeches(self):
@@ -24,12 +25,15 @@ class TimeWindow:
         return len(self.topics)
 
     @property
+    def W(self):
+        return np.array([topic.document_weights for topic in self.topics]).T
+
+    @property
     def speech2topic(self):
         """
         Assuming a single membership model, i.e. each speech has 1 topic with the highest weight 
         """
-        speech_topic_weights = np.array([topic.document_weights for topic in self.topics]).T # shape = (num_speeches, num_topics)
-        return pd.DataFrame(speech_topic_weights).idxmax(axis=1)
+        return {self.speech_ids[i]: (self.topics[topic].id, self.W[i,topic]) for i, topic in enumerate(np.argmax(self.W, axis=1))}
 
     def top_term_weights(self, n_top):
         return [topic.top_term_weights(n_top) for topic in self.topics]
