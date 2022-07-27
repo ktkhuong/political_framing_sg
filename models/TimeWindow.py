@@ -32,7 +32,7 @@ class TimeWindow:
         self.coherence = coherence
         self.save(f"{self.OUT_PATH}/{self.id}.pkl")
         
-        logger.info(f"{self.id}: {self.n_titles} titles; {self.num_speeches} speeches; {self.num_topics} topics; coherence = {self.coherence};")
+        logger.info(f"{self.id}: {self.num_speeches} speeches; {self.num_topics} topics; coherence = {self.coherence};")
         logger.info("-----------------------------------------------------------------------------")
 
     @property
