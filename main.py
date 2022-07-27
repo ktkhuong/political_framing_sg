@@ -61,6 +61,7 @@ def fit_window_topics(min_k=10, max_k=25):
             topic.id = f"{time_window.id}/{i}"
         time_window.topics = topics
         time_window.coherence = coherence
+        fit_subtopics(time_window, vocab, coherence_model)
         time_window.save(f"{OUT_PATH}/{time_window.id}.pkl")
         logger.info(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; coherence = {time_window.coherence};")
         logger.info("-----------------------------------------------------------------------------")
