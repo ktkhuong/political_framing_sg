@@ -9,9 +9,10 @@ from models.CoherenceModel import Word2VecCoherenceModel, CvCoherenceModel
 from optparse import OptionParser
 from nmf import choose_topics
 import numpy as np
+from sklearn.preprocessing import normalize
 
-DATA_PATH = "data"
 OUT_PATH = "out"
+DATA_PATH = "data"
 DATASET_PATH = "dataset/parliament"
 
 logging.basicConfig(
@@ -49,22 +50,7 @@ def fit_window_topics(min_k=10, max_k=25):
         vocab = pickle.load(f)
     # 4. Fit window topics
     for time_window in time_windows:
-        logger.info(f"Fitting {time_window.id} ...")
-        topics, coherence = choose_topics(
-            time_window.tfidf_matrix, 
-            vocab, 
-            coherence_model, 
-            min_n_components=min(min_k, time_window.num_speeches), 
-            max_n_components=min(max_k, time_window.num_speeches),
-        )
-        for i, topic in enumerate(topics):
-            topic.id = f"{time_window.id}/{i}"
-        time_window.topics = topics
-        time_window.coherence = coherence
-        fit_subtopics(time_window, vocab, coherence_model)
-        time_window.save(f"{OUT_PATH}/{time_window.id}.pkl")
-        logger.info(f"{time_window.id}: {time_window.n_titles} titles; {time_window.num_speeches} speeches; {time_window.num_topics} topics; coherence = {time_window.coherence};")
-        logger.info("-----------------------------------------------------------------------------")
+        time_window.fit(coherence_model, min_k, max_k)
 
     #clear_dir(DATA_PATH)
 
@@ -83,10 +69,11 @@ def fit_subtopics(time_window: TimeWindow, vocab, coherence_model):
         if freq > 25:
             logger.info(f"fitting topic {i} freq = {freq}")
             rows = np.where(x == i)
+            tfidf_matrix = normalize(time_window.tfidf_matrix[rows], axis=1, norm='l2')
             sub_window = TimeWindow(
                 f"{time_window.id}/{i}",
                 time_window.speech_ids[rows],
-                time_window.tfidf_matrix[rows],
+                tfidf_matrix,
                 0
             )
             topics, coherence = choose_topics(
