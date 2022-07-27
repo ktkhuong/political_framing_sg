@@ -74,7 +74,7 @@ def fit_subtopics(time_window: TimeWindow, vocab, coherence_model):
 
     W = time_window.W
     n_docs, n_topics = W.shape
-    logger.info(f"W shape:", W.shape)
+    logger.info(f"W shape: {W.shape}")
     max_weights = np.max(W, axis=1)
     included = np.where(max_weights > 0.05)
     x = np.argmax(W, axis=1)
