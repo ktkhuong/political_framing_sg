@@ -33,14 +33,15 @@ class TimeWindow:
         self.coherence = coherence
 
         self.fit_children(coherence_model, 5, 15)
-
+ 
         if self.id.find("/") == -1: # only applicable to root
             logger.info(f"Assign extra topics to leaf topic...")
             topics = self.topics[:]
             for child in self.children:
                 topics += child.topics[:]
 
-        self.save(f"{self.OUT_PATH}/{self.id}.pkl")
+        if self.id.find("/") == -1: # only applicable to root
+            self.save(f"{self.OUT_PATH}/{self.id}.pkl")
         
         logger.info(f"{self.id}: {self.num_speeches} speeches; {self.num_topics} topics; coherence = {self.coherence};")
         logger.info("-----------------------------------------------------------------------------")
