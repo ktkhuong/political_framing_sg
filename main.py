@@ -32,7 +32,7 @@ def clear_dir(path):
 def fit_window_topics(min_k=10, max_k=25):
     logger = logging.getLogger(__name__)
 
-    #clear_dir(OUT_PATH)
+    clear_dir(OUT_PATH)
 
     # 1. Read time windows
     time_windows = [TimeWindow.load(DATA_PATH+"/"+f) for f in os.listdir("data") if f.endswith(".pkl") and not f.startswith("vocab")]
@@ -52,43 +52,7 @@ def fit_window_topics(min_k=10, max_k=25):
     for time_window in time_windows:
         time_window.fit(coherence_model, min_k, max_k)
 
-    #clear_dir(DATA_PATH)
-
-def fit_subtopics(time_window: TimeWindow, vocab, coherence_model):
-    logger = logging.getLogger(__name__)
-    logger.info(f"Fitting subtopic of {time_window.id} ...")
-
-    W = time_window.W
-    n_docs, n_topics = W.shape
-    logger.info(f"W shape: {W.shape}")
-    max_weights = np.max(W, axis=1)
-    included = np.where(max_weights > 0.05)
-    x = np.argmax(W, axis=1)
-    hist, _ = np.histogram(x, bins=range(n_topics+1))
-    for i, freq in enumerate(hist):
-        if freq > 25:
-            logger.info(f"fitting topic {i} freq = {freq}")
-            rows = np.where(x == i)
-            tfidf_matrix = normalize(time_window.tfidf_matrix[rows], axis=1, norm='l2')
-            sub_window = TimeWindow(
-                f"{time_window.id}/{i}",
-                time_window.speech_ids[rows],
-                tfidf_matrix,
-                0
-            )
-            topics, coherence = choose_topics(
-                sub_window.tfidf_matrix, 
-                vocab, 
-                coherence_model, 
-                min_n_components=min(10, time_window.num_speeches), 
-                max_n_components=min(25, time_window.num_speeches),
-            )
-            for j, topic in enumerate(topics):
-                topic.id = f"{time_window.id}/{i}/{j}"
-            sub_window.topics = topics
-            sub_window.coherence = coherence
-            logger.info(f"{sub_window.id}: {sub_window.num_speeches} speeches; {sub_window.num_topics} topics; coherence = {sub_window.coherence};")
-            time_window.sub_windows.append(sub_window)            
+    clear_dir(DATA_PATH)
 
 def preprocess(parl_num):
     logger = logging.getLogger(__name__)
