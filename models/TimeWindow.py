@@ -115,7 +115,7 @@ class TimeWindow:
         Assuming a single membership model, i.e. each speech has 1 topic with the highest weight 
         """
         topics = np.argmax(self.W[self.assigned_speeches], axis=1)
-        speech2topic = [(self.speech_ids[speech], self.topics[topic], self.W[speech, topic]) for speech, topic in zip(self.assigned_speeches, topics)]
+        speech2topic = [(self.speech_ids[speech], self.topics[topic].id, self.W[speech, topic]) for speech, topic in zip(self.assigned_speeches, topics)]
         for child in self.children:
             speech2topic += child.speech2topic
         return speech2topic
