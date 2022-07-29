@@ -66,6 +66,13 @@ class TimeWindow:
             self.children.append(child)
 
     @property
+    def all_topics(self):
+        topics = self.topics
+        for child in self.children:
+            topics += child.all_topics
+        return topics
+
+    @property
     def num_speeches(self):
         return self.tfidf_matrix.shape[0]
 
@@ -84,12 +91,14 @@ class TimeWindow:
     @property
     def extra_speeches(self):
         max_weights = np.max(self.W, axis=1)
-        return np.where(max_weights < 0.05)
+        nonzero, *_ = np.where(max_weights < 0.05)
+        return nonzero
 
     @property
     def assigned_speeches(self):
         max_weights = np.max(self.W, axis=1)
-        return np.where(max_weights >= 0.05)
+        nonzero, *_ = np.asarray(max_weights >= 0.05).nonzero()
+        return nonzero
 
     @property
     def popular_topics(self):
@@ -115,13 +124,17 @@ class TimeWindow:
         Assuming a single membership model, i.e. each speech has 1 topic with the highest weight 
         """
         topics = np.argmax(self.W[self.assigned_speeches], axis=1)
-        speech2topic = [(self.speech_ids[speech], self.topics[topic].id, self.W[speech, topic]) for speech, topic in zip(self.assigned_speeches, topics)]
+        #speech2topic = [(self.speech_ids[speech], self.topics[topic].id, self.W[speech, topic]) for speech, topic in zip(self.assigned_speeches, topics)]
+        speech2topic = []
+        for speech, topic in zip(self.assigned_speeches, topics):
+            speech2topic.append((self.speech_ids[speech], self.topics[topic].id, self.W[speech, topic]))
         for child in self.children:
             speech2topic += child.speech2topic
         return speech2topic
 
     def top_term_weights(self, n_top):
-        return [topic.top_term_weights(n_top) for topic in self.topics]
+        #return [topic.top_term_weights(n_top) for topic in self.topics]
+        return [topic.top_term_weights(n_top) for topic in self.all_topics]
 
     def save(self, path):
         with open(path, 'wb') as f:
