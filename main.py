@@ -84,14 +84,6 @@ def main():
         min_k, max_k = list(map(int, options.num_topics.split(",")))
         fit_window_topics(min_k, max_k)
     elif options.run_preprocess:
-        logging.basicConfig(
-            format="%(asctime)s - %(funcName)s - %(message)s", 
-            level=logging.INFO,
-            handlers=[
-                logging.FileHandler(f"out/{socket.gethostname()}_preprocess.log"),
-                logging.StreamHandler()
-            ]
-        )
         preprocess(options.parl_num)
     
 

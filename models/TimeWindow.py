@@ -35,11 +35,11 @@ class TimeWindow:
         if self.id.count("/") == 0:
             self.fit_children(coherence_model, 5, 15)
  
-        if self.id.count("/") == 0: # only applicable to root
+        """ if self.id.count("/") == 0: # only applicable to root
             logger.info(f"Assign extra topics to leaf topic...")
             topics = self.topics[:]
-            for child in self.children:
-                topics += child.topics[:]
+            for child in self.children: 
+                topics += child.topics[:] """
 
         if self.id.count("/") == 0: # only applicable to root
             self.save(f"{self.OUT_PATH}/{self.id}.pkl")
@@ -67,7 +67,7 @@ class TimeWindow:
 
     @property
     def all_topics(self):
-        topics = self.topics
+        topics = self.topics[:]
         for child in self.children:
             topics += child.all_topics
         return topics
@@ -124,7 +124,6 @@ class TimeWindow:
         Assuming a single membership model, i.e. each speech has 1 topic with the highest weight 
         """
         topics = np.argmax(self.W[self.assigned_speeches], axis=1)
-        #speech2topic = [(self.speech_ids[speech], self.topics[topic].id, self.W[speech, topic]) for speech, topic in zip(self.assigned_speeches, topics)]
         speech2topic = []
         for speech, topic in zip(self.assigned_speeches, topics):
             speech2topic.append((self.speech_ids[speech], self.topics[topic].id, self.W[speech, topic]))
@@ -133,7 +132,6 @@ class TimeWindow:
         return speech2topic
 
     def top_term_weights(self, n_top):
-        #return [topic.top_term_weights(n_top) for topic in self.topics]
         return [topic.top_term_weights(n_top) for topic in self.all_topics]
 
     def save(self, path):
