@@ -43,6 +43,7 @@ class TimeWindow:
             leaves = self.all_leaves
             for row in self.extra_speeches:
                 speech_terms = self.tfidf_matrix[row,:].to_array()
+                print("speech_terms =", speech_terms)
                 best_topic = None
                 best_similarity = 0
                 for topic in leaves:
