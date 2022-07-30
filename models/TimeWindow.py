@@ -43,7 +43,6 @@ class TimeWindow:
             leaves = self.all_leaves
             for row in self.extra_speeches:
                 speech_terms = self.tfidf_matrix.toarray()[row,:]
-                print("speech_terms =", speech_terms)
                 best_topic = None
                 best_similarity = 0
                 for topic in leaves:
@@ -53,6 +52,7 @@ class TimeWindow:
                     if similarity > best_similarity:
                         best_topic = topic
                         best_similarity = similarity
+                logger.info(f"extra: {self.speech_ids[row]}, {best_topic.id}, {best_similarity}")
                 self.extras.append((self.speech_ids[row], best_topic.id, best_similarity))
 
             self.save(f"{self.OUT_PATH}/{self.id}.pkl")

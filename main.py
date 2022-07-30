@@ -15,15 +15,6 @@ OUT_PATH = "out"
 DATA_PATH = "data"
 DATASET_PATH = "dataset/parliament"
 
-logging.basicConfig(
-    format="%(asctime)s - %(funcName)s - %(message)s", 
-    level=logging.INFO,
-    handlers=[
-        logging.FileHandler(f"out/{socket.gethostname()}.log"),
-        logging.StreamHandler()
-    ]
-)
-
 def clear_dir(path):
     for f in os.listdir(path):
         fp = f"{path}/{f}"
@@ -79,6 +70,15 @@ def main():
     (options, args) = parser.parse_args()
     if options.run_fit == None and options.run_preprocess == None:
         parser.error("Must specify either -f or -p to dataset")
+
+    logging.basicConfig(
+        format="%(asctime)s - %(funcName)s - %(message)s", 
+        level=logging.INFO,
+        handlers=[
+            logging.FileHandler(f"out/{socket.gethostname()}.log"),
+            logging.StreamHandler()
+        ]
+    )
 
     if options.run_fit:
         min_k, max_k = list(map(int, options.num_topics.split(",")))
