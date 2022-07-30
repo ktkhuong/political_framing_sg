@@ -18,20 +18,21 @@ class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
 
         df, coherence_model, tfidf = X
         tfidf_matrix = tfidf.transform(df["tokenized_speech"].values)
+        vocab = tfidf.get_feature_names_out()
 
         logger.message(f"DataFrame: {df.shape}")
         logger.message(f"TF-IDF: {tfidf_matrix.shape}")
         
         if self.window_size == self.WINDOW_SIZE_MONTH:
-            time_windows = self.partition_by_month(df, tfidf_matrix)
+            time_windows = self.partition_by_month(df, tfidf_matrix, vocab)
         elif self.window_size == self.WINDOW_SIZE_QUARTER:
-            time_windows = self.partition_by_quarter(df, tfidf_matrix)
+            time_windows = self.partition_by_quarter(df, tfidf_matrix, vocab)
         else:
             raise RuntimeError("Unsupported window size!")
-        vocab = tfidf.get_feature_names_out()
+        
         return coherence_model, vocab, time_windows
 
-    def partition_by_month(self, df, tfidf_matrix):
+    def partition_by_month(self, df, tfidf_matrix, vocab):
         logger = logging.getLogger(__name__)
 
         time_windows = []
@@ -46,7 +47,7 @@ class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
                         f"{year}M{month}", 
                         records,
                         tfidf_matrix[records], 
-                        df_month["title"].nunique()
+                        vocab
                     )
                     time_windows.append(window)
                     logger.message(f"{year}M{month}: {df_month.shape}")
@@ -55,7 +56,7 @@ class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
 
         return time_windows
 
-    def partition_by_quarter(self, df, tfidf_matrix):
+    def partition_by_quarter(self, df, tfidf_matrix, vocab):
         logger = logging.getLogger(__name__)
 
         time_windows = []
@@ -70,7 +71,7 @@ class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
                         f"{year}Q{quarter}", 
                         records,
                         tfidf_matrix[records], 
-                        df_quater["title"].nunique()
+                        vocab
                     )
                     time_windows.append(window)
                     logger.message(f"{year}Q{quarter}: {df_quater.shape}")

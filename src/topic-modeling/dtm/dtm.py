@@ -67,7 +67,7 @@ def main():
     parser.add_option("-t", "--to", action="store", type="string", dest="end_date", help="end date", default=None)
     parser.add_option("-m", "--machines", action="store", type=int, dest="machines", help="number of available virtual machines", default=len(VIRTUAL_MACHINES))
     parser.add_option("-x", "--max-df", action="store", type=float, dest="max_df", help="max_df of TF-IDF", default=0.2)
-    parser.add_option("-k", "--krange", action="store", type="string", dest="krange", help="range of num of window topics, comma separated", default="5,30")
+    parser.add_option("-k", "--krange", action="store", type="string", dest="krange", help="range of num of window topics, comma separated", default="15,40")
     parser.add_option("-s", "--max-features", action="store", type=int, dest="max_features", help="max features of TF-IDF", default=None)
     (options, args) = parser.parse_args()
     if options.url == None:
@@ -106,3 +106,5 @@ def main():
     
 if __name__ == "__main__":
     main()
+    #from models.TimeWindow import TimeWindow
+    #print(TimeWindow.load("in/2019Q1.pkl").W)

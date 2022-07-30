@@ -24,37 +24,24 @@ class SaveToDb(BaseEstimator, TransformerMixin):
 
     def save_window_topics(self, time_windows):
         conn = sqlite3.connect(self.db_name)
-        #data = {topic.id: " ".join(topic.top_terms()) for time_window in time_windows for topic in time_window.topics}
-        data = defaultdict(list)
-        for time_window in time_windows:
-            for topic in time_window.topics:
-                data['id'].append(topic.id)
-                data['topic'].append(" ".join(topic.top_terms()))
-                data['coherence'].append(topic.coherence)
-        df_window_topics = pd.DataFrame.from_dict(data).set_index("id")
+        data = [(topic.id, " ".join(topic.top_terms()), topic.coherence) for time_window in time_windows for topic in time_window.all_topics]
+        df_window_topics = pd.DataFrame(data, columns=["id","topic","coherence"])
         df_window_topics.to_sql(name=self.TABLE_WINDOW_TOPICS, con=conn)
         conn.close()
 
     def save_speech2topic(self, time_windows):
         conn = sqlite3.connect(self.db_name)
-        speech2topic = {}
+        speech2topic = []
         for time_window in time_windows:
-            speech2topic = {**speech2topic, **time_window.speech2topic}
-        df_speech2topic = pd.DataFrame(speech2topic.items(), columns=["speech","topic"]).set_index("speech")
-        df_speech2topic["weight"] = df_speech2topic["topic"].map(lambda item: item[1])
-        df_speech2topic["topic"] = df_speech2topic["topic"].map(lambda item: item[0])
+            speech2topic += time_window.speech2topic
+        df_speech2topic = pd.DataFrame(speech2topic, columns=["speech","topic","weight"])
         df_speech2topic.to_sql(name=self.TABLE_SPEECH_2_TOPIC, con=conn)
         conn.close()
 
     def save_dynamic_topics(self, dynamic_topics):
         conn = sqlite3.connect(self.db_name)
-        #data = {i: " ".join(topic.top_terms()) for i, topic in enumerate(dynamic_topics.topics)}
-        data = defaultdict(list)
-        for i, topic in enumerate(dynamic_topics.topics):
-            data['id'].append(i)
-            data['topic'].append(" ".join(topic.top_terms()))
-            data['coherence'].append(topic.coherence)
-        df_dynamic_topics = pd.DataFrame.from_dict(data).set_index("id")
+        data = [(i, " ".join(topic.top_terms()), topic.coherence) for i, topic in enumerate(dynamic_topics.topics)]
+        df_dynamic_topics = pd.DataFrame(data, columns=["id","topic","coherence"]).set_index("id")
         df_dynamic_topics.to_sql(name=self.TABLE_DYNAMIC_TOPICS, con=conn)
         conn.close()
 
@@ -65,7 +52,7 @@ class SaveToDb(BaseEstimator, TransformerMixin):
         offset = 0
         wt2dt = dynamic_topics.wt2dt
         for time_window in dynamic_topics.time_windows:
-            for i, topic in enumerate(time_window.topics):
+            for i, topic in enumerate(time_window.all_topics):
                 data[topic.id] = wt2dt[i+offset]
             offset += len(time_window.topics)
         df_wt2dt = pd.DataFrame(data.items(), columns=["window_topic", "dynamic_topic"])

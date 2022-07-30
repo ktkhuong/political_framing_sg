@@ -1,16 +1,69 @@
 import numpy as np
-import pickle
+import pickle, logging
 import pandas as pd
-from collections import defaultdict
+from nmf import choose_topics
+from sklearn.preprocessing import normalize
 
 class TimeWindow:
-    def __init__(self, id, speech_ids, tfidf_matrix, n_titles):
+    OUT_PATH = "out"
+
+    def __init__(self, id, speech_ids, tfidf_matrix, vocab):
         self.id = id
         self.speech_ids = speech_ids
         self.tfidf_matrix = tfidf_matrix # TF-IDF of the time window
+        self.vocab = vocab
         self.topics = [] # list of Topic
         self.coherence = 0
-        self.n_titles = n_titles
+        self.children = []
+
+    def fit(self, coherence_model, min_k, max_k):
+        logger = logging.getLogger(__name__)
+        logger.info(f"Fitting {self.id} ...")
+
+        topics, coherence = choose_topics(
+            self.tfidf_matrix, 
+            self.vocab, 
+            coherence_model, 
+            min_n_components=min(min_k, self.num_speeches), 
+            max_n_components=min(max_k, self.num_speeches),
+        )
+        for i, topic in enumerate(topics):
+            topic.id = f"{self.id}/{i}"
+        self.topics = topics
+        self.coherence = coherence
+
+        if self.id.count("/") == 0:
+            self.fit_children(coherence_model, 5, 15)
+ 
+        if self.id.count("/") == 0: # only applicable to root
+            logger.info(f"Assign extra topics to leaf topic...")
+            topics = self.topics[:]
+            for child in self.children: 
+                topics += child.topics[:]
+
+        if self.id.count("/") == 0: # only applicable to root
+            self.save(f"{self.OUT_PATH}/{self.id}.pkl")
+        
+        logger.info(f"{self.id}: {self.num_speeches} speeches; {self.num_topics} topics; coherence = {self.coherence};")
+        logger.info("-----------------------------------------------------------------------------")
+
+    def fit_children(self, coherence_model, min_k, max_k):
+        logger = logging.getLogger(__name__)
+        logger.info(f">>> Fitting {self.id} children ...")
+
+        popular_topics = self.popular_topics
+        x = np.argmax(self.W, axis=1)
+        for pt in popular_topics:
+            rows = np.where(x == pt)
+            tfidf_matrix = normalize(self.tfidf_matrix[rows], axis=1, norm='l2')
+            child = TimeWindow(
+                f"{self.id}/{pt}",
+                self.speech_ids[rows],
+                tfidf_matrix,
+                self.vocab
+            )
+            child.fit(coherence_model, min_k, max_k)
+            self.children.append(child)
 
     @property
     def num_speeches(self):
@@ -25,16 +78,64 @@ class TimeWindow:
         return len(self.topics)
 
     @property
+    def W(self):
+        return np.array([topic.document_weights for topic in self.topics]).T
+
+    @property
+    def extra_speeches(self):
+        max_weights = np.max(self.W, axis=1)
+        nonzero, *_ = np.where(max_weights < 0.05)
+        return nonzero
+
+    @property
+    def assigned_speeches(self):
+        max_weights = np.max(self.W, axis=1)
+        nonzero, *_ = np.asarray(max_weights >= 0.05).nonzero()
+        return nonzero
+
+    @property
+    def all_topics(self):
+        """
+        topics of this time windows & its children
+        """
+        topics = self.topics[:]
+        for child in self.children:
+            topics += child.all_topics
+        return topics
+
+    @property
+    def popular_topics(self):
+        rows = self.assigned_speeches
+        W = self.W[rows]
+        _, n_topics = W.shape
+        x = np.argmax(W, axis=1)
+        hist, _ = np.histogram(x, bins=range(n_topics+1))
+        return np.array([i for i, freq in enumerate(hist) if freq > 25])
+    
+    @property
+    def leaf_topics(self):
+        rows = self.assigned_speeches
+        W = self.W[rows]
+        _, n_topics = W.shape
+        x = np.argmax(W, axis=1)
+        hist, _ = np.histogram(x, bins=range(n_topics+1))
+        return np.array([i for i, freq in enumerate(hist) if freq < 25])
+
+    @property
     def speech2topic(self):
         """
         Assuming a single membership model, i.e. each speech has 1 topic with the highest weight 
         """
-        speech_topic_weights = np.array([topic.document_weights for topic in self.topics]).T # shape = (num_speeches, num_topics)
-        highest_weights = np.argmax(speech_topic_weights, axis=1)
-        return {self.speech_ids[i]: (self.topics[topic].id, speech_topic_weights[i,topic]) for i, topic in enumerate(highest_weights)}
+        topics = np.argmax(self.W[self.assigned_speeches], axis=1)
+        speech2topic = []
+        for speech, topic in zip(self.assigned_speeches, topics):
+            speech2topic.append((self.speech_ids[speech], self.topics[topic].id, self.W[speech, topic]))
+        for child in self.children:
+            speech2topic += child.speech2topic
+        return speech2topic
 
     def top_term_weights(self, n_top):
-        return [topic.top_term_weights(n_top) for topic in self.topics]
+        return [topic.top_term_weights(n_top) for topic in self.all_topics]
 
     def save(self, path):
         with open(path, 'wb') as f:
