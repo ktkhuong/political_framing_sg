@@ -42,7 +42,7 @@ class TimeWindow:
             logger.info(f"Assign extra topics to leaf topic...")
             leaves = self.all_leaves
             for row in self.extra_speeches:
-                speech_terms = self.tfidf_matrix[row,:]
+                speech_terms = self.tfidf_matrix[row,:].to_array()
                 best_topic = None
                 best_similarity = 0
                 for topic in leaves:
