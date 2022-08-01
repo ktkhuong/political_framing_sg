@@ -27,7 +27,11 @@ logging.message = message
 logging.Logger.message = message
 logging.basicConfig(
     format="[%(levelname)s] - %(asctime)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s", 
-    level=MESSAGE
+    level=MESSAGE,
+    handlers=[
+        logging.FileHandler(f"dtm.log"),
+        logging.StreamHandler()
+    ]
 )
 
 VIRTUAL_MACHINES = [
@@ -95,7 +99,7 @@ def main():
                     ("Partition to time windows", PartitionToTimeWindows()),
                     ("Export pickles", ExportData()),
                     ("Fit window topics", FitWindowTopics(VIRTUAL_MACHINES[:options.machines], min_n_components=min_k, max_n_components=max_k)),
-                    ("Fit dynamic topics", FitDynamicTopics(min_n_components=10, max_n_components=120, n_terms=20)),
+                    ("Fit dynamic topics", FitDynamicTopics(min_n_components=25, max_n_components=120, n_terms=20)),
                 ]
             )),
             ("Save to db", SaveToDb()),
@@ -106,5 +110,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-    #from models.TimeWindow import TimeWindow
-    #print(TimeWindow.load("in/2019Q1.pkl").W)
