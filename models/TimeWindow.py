@@ -65,13 +65,16 @@ class TimeWindow:
         logger.info(f">>> Fitting {self.id} children ...")
 
         popular_topics = self.popular_topics
-        x = np.argmax(self.W, axis=1)
+        W = self.W[self.assigned_speeches]
+        tf_idf = self.tfidf_matrix[self.assigned_speeches]
+        speech_ids = self.speech_ids[self.assigned_speeches]
+        x = np.argmax(W, axis=1)
         for pt in popular_topics:
             rows = np.where(x == pt)
-            tfidf_matrix = normalize(self.tfidf_matrix[rows], axis=1, norm='l2')
+            tfidf_matrix = normalize(tf_idf[rows], axis=1, norm='l2')
             child = TimeWindow(
                 f"{self.id}/{pt}",
-                self.speech_ids[rows],
+                speech_ids[rows],
                 tfidf_matrix,
                 self.vocab
             )
@@ -136,7 +139,7 @@ class TimeWindow:
     def popular_topics(self):
         """
         topics that have more than m speeches assigned to
-        return index of those topics
+        return indices of those topics
         """
         rows = self.assigned_speeches
         W = self.W[rows]
