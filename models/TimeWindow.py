@@ -39,21 +39,21 @@ class TimeWindow:
         if self.id.count("/") == 0: # only applicable to root
             self.fit_children(coherence_model, 5, 15)
 
-            logger.info(f"Assign extra topics to leaf topic...")
-            leaves = self.all_leaves
-            for row in self.extra_speeches:
-                speech_terms = self.tfidf_matrix.toarray()[row,:]
-                best_topic = None
-                best_similarity = 0
-                for topic in leaves:
-                    topic_terms = topic.term_weights
-                    # cosine similiarity
-                    similarity = 1 - spatial.distance.cosine(speech_terms, topic_terms)
-                    if similarity > best_similarity:
-                        best_topic = topic
-                        best_similarity = similarity
-                logger.info(f"extra: {self.speech_ids[row]}, {best_topic.id}, {best_similarity}")
-                self.extras.append((self.speech_ids[row], best_topic.id, best_similarity))
+            #logger.info(f"Assign extra topics to leaf topic...")
+            #leaves = self.all_leaves
+            #for row in self.extra_speeches:
+            #    speech_terms = self.tfidf_matrix.toarray()[row,:]
+            #    best_topic = None
+            #    best_similarity = 0
+            #    for topic in leaves:
+            #        topic_terms = topic.term_weights
+            #        # cosine similiarity
+            #        similarity = 1 - spatial.distance.cosine(speech_terms, topic_terms)
+            #        if similarity > best_similarity:
+            #            best_topic = topic
+            #            best_similarity = similarity
+            #    logger.info(f"extra: {self.speech_ids[row]}, {best_topic.id}, {best_similarity}")
+            #    self.extras.append((self.speech_ids[row], best_topic.id, best_similarity))
 
             self.save(f"{self.OUT_PATH}/{self.id}.pkl")
         
@@ -176,7 +176,7 @@ class TimeWindow:
         """
         weight of top terms of all topics
         """
-        return [topic.top_term_weights(n_top) for topic in self.all_topics]
+        return [topic.top_term_weights(n_top) for topic in self.topics]
 
     def save(self, path):
         with open(path, 'wb') as f:
