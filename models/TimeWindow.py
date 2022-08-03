@@ -75,7 +75,7 @@ class TimeWindow:
             rows = np.where(x == pt)
             tfidf_matrix = normalize(tf_idf[rows], axis=1, norm='l2')
             child = TimeWindow(
-                f"{self.id}/{pt}",
+                f"{self.id}/{str(pt).zfill(2)}",
                 speech_ids[rows],
                 tfidf_matrix,
                 self.vocab
