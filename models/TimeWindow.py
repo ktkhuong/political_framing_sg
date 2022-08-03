@@ -32,7 +32,7 @@ class TimeWindow:
             max_n_components=min(max_k, self.num_speeches),
         )
         for i, topic in enumerate(topics):
-            topic.id = f"{self.id}/{i}"
+            topic.id = f"{self.id}/{str(i).zfill(2)}"
         self.topics = topics
         self.coherence = coherence
 
