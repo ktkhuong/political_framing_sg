@@ -39,21 +39,23 @@ class TimeWindow:
         if self.id.count("/") == 0: # only applicable to root
             self.fit_children(coherence_model, 5, 15)
 
-            #logger.info(f"Assign extra topics to leaf topic...")
-            #leaves = self.all_leaves
-            #for row in self.extra_speeches:
-            #    speech_terms = self.tfidf_matrix.toarray()[row,:]
-            #    best_topic = None
-            #    best_similarity = 0
-            #    for topic in leaves:
-            #        topic_terms = topic.term_weights
-            #        # cosine similiarity
-            #        similarity = 1 - spatial.distance.cosine(speech_terms, topic_terms)
-            #        if similarity > best_similarity:
-            #            best_topic = topic
-            #            best_similarity = similarity
-            #    logger.info(f"extra: {self.speech_ids[row]}, {best_topic.id}, {best_similarity}")
-            #    self.extras.append((self.speech_ids[row], best_topic.id, best_similarity))
+            logger.info(f"Assign extra topics to leaf topic...")
+            leaves = [self.topics[i] for i in self.leaf_topics]
+            for child in self.children:
+                leaves += child.topics
+            for row in self.extra_speeches:
+                speech_terms = self.tfidf_matrix.toarray()[row,:]
+                best_topic = None
+                best_similarity = 0
+                for topic in leaves:
+                    topic_terms = topic.term_weights
+                    # cosine similiarity
+                    similarity = 1 - spatial.distance.cosine(speech_terms, topic_terms)
+                    if similarity > best_similarity:
+                        best_topic = topic
+                        best_similarity = similarity
+                logger.info(f"extra: {self.speech_ids[row]}, {best_topic.id}, {best_similarity}")
+                self.extras.append((self.speech_ids[row], best_topic.id, best_similarity))
 
             self.save(f"{self.OUT_PATH}/{self.id}.pkl")
         
