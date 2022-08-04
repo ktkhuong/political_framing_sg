@@ -8,7 +8,7 @@ from sklearn.preprocessing import normalize
 class TimeWindow:
     OUT_PATH = "out"
 
-    def __init__(self, id, speech_ids, tfidf_matrix, vocab, alpha = 0.05, m = 25):
+    def __init__(self, id, speech_ids, tfidf_matrix, vocab, alpha = 0.05, m = 40):
         self.id = id
         self.speech_ids = speech_ids
         self.tfidf_matrix = tfidf_matrix # TF-IDF of the time window
@@ -72,10 +72,10 @@ class TimeWindow:
         speech_ids = self.speech_ids[self.assigned_speeches]
         x = np.argmax(W, axis=1)
         for pt in popular_topics:
-            rows = np.where(x == pt)
+            rows, *_ = np.where(x == pt)
             tfidf_matrix = normalize(tf_idf[rows], axis=1, norm='l2')
             child = TimeWindow(
-                f"{self.id}/{str(pt).zfill(2)}",
+                f"{self.id}/{pt}",
                 speech_ids[rows],
                 tfidf_matrix,
                 self.vocab
@@ -148,8 +148,9 @@ class TimeWindow:
         _, n_topics = W.shape
         x = np.argmax(W, axis=1)
         hist, _ = np.histogram(x, bins=range(n_topics+1))
-        return np.array([i for i, freq in enumerate(hist) if freq > self.m])
-        #return np.where(hist > self.m)
+        #return np.array([i for i, freq in enumerate(hist) if freq > self.m])
+        cols, *_ = np.where(hist > self.m)
+        return cols
     
     @property
     def leaf_topics(self):
@@ -162,8 +163,8 @@ class TimeWindow:
         _, n_topics = W.shape
         x = np.argmax(W, axis=1)
         hist, _ = np.histogram(x, bins=range(n_topics+1))
-        return np.array([i for i, freq in enumerate(hist) if freq < self.m])
-        #return np.where(hist <= self.m)
+        cols, *_ =  np.where(hist <= self.m)
+        return cols
 
     @property
     def speech2topic(self):
