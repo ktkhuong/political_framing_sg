@@ -6,8 +6,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import warnings
 
 class FitWord2VecAndTfidf(BaseEstimator, TransformerMixin):
-    def __init__(self, min_count=10, max_df=0.2, min_df=10, max_features=None):
-        self.min_count = min_count
+    def __init__(self, max_df=0.2, min_df=10, max_features=None):
+        self.min_count = min_df
         self.max_df = max_df
         self.min_df = min_df
         self.max_features = max_features
