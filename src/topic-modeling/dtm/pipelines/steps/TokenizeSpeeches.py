@@ -1,5 +1,4 @@
 import spacy
-from nltk.corpus import stopwords
 from nltk import tokenize
 from gensim.utils import simple_preprocess
 import spacy
@@ -9,7 +8,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 ###################################
 #### stop words ####
 ###################################
-#stop_words = set(stopwords.words('english'))
 def load_stopwords(path="stopwords.txt" ):
 	"""
 	Load stopwords from a file into a set.
@@ -27,10 +25,12 @@ extra_stop_words = {
     "please", "would", "use", "also", "thank", 
     # salutation
     "mr", "sir", "madam", "speaker", "minister", "member", "members", "honourable", 
-    # parliamentary specific words
-    "bill",
+    # parliamentary related stop-words
+    "bill", "ministry", "parliament",
     "act", "amendment", "applause", "ask", "beg", "chair", "chairman", "clause", 
-    "constitution", "laughter", "mentioned", "motion", "order", "ordinance", "party", "question", "regard", "report", "second", "sitting"
+    "constitution", "laughter", "mentioned", "motion", "order", "ordinance", "party", "question", "regard", "report", "second", "sitting",
+    # others
+    "singapore", "government", "singaporean",
 }
 stop_words = stop_words.union(extra_stop_words)
 
@@ -68,13 +68,13 @@ class TokenizeSpeeches(BaseEstimator, TransformerMixin):
         return tokenize.sent_tokenize(doc)
 
     def sent2tokens(self, sentences):
-        sent_tokens = [simple_preprocess(sentence, deacc=True) for sentence in sentences]
+        sent_tokens = [simple_preprocess(sentence, deacc=True, min_len=3) for sentence in sentences]
         return [token for tokens in sent_tokens for token in tokens]
 
     def remove_stopwords(self, tokens):
-        return [token for token in tokens if token not in stop_words and len(token) > 2]
+        return [token for token in tokens if token not in stop_words]
 
-    def lemmatize(self, tokens, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
+    def lemmatize(self, tokens, allowed_postags=['NOUN']):
         doc = self.nlp(" ".join(tokens))
         return [token.lemma_ for token in doc if token.pos_ in allowed_postags]
 

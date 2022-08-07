@@ -6,8 +6,8 @@ import os
 class ReadDataset(BaseEstimator, TransformerMixin):
     DATASET_PATH = "in"
 
-    def __init__(self):
-        pass
+    def __init__(self, party):
+        self.party = party
 
     def fit(self, X, y=None):
         return self
@@ -16,18 +16,20 @@ class ReadDataset(BaseEstimator, TransformerMixin):
         """
         logger = logging.getLogger(__name__)
 
-        frames = [pd.read_csv(f"{self.DATASET_PATH}/{f}", usecols=["date", "quarter", "section", "title", "member", "preprocessed_speech"])
+        frames = [pd.read_csv(f"{self.DATASET_PATH}/{f}", usecols=["date", "quarter", "section", "title", "member", "preprocessed_speech", "party"])
                     for f in os.listdir(self.DATASET_PATH) if f.endswith(".csv")]
-        for frame in frames:
-            frame['date'] = pd.to_datetime(frame['date'])
         df = pd.concat(frames)
-        
+        df['date'] = pd.to_datetime(df['date'])
+        if self.party != 'all':
+            df = df[df["party"] == self.party]
         logger.message(f"Dataset shape: {df.shape}")
         return df
         """
         logger = logging.getLogger(__name__)
 
-        df = pd.read_csv("sgparl.csv", usecols=["date", "quarter", "section", "title", "member", "preprocessed_speech"])
+        df = pd.read_csv("sgparl.csv", usecols=["date", "quarter", "section", "title", "member", "preprocessed_speech", "party"])
         df['date'] = pd.to_datetime(df['date'])
+        if self.party != 'all':
+            df = df[df["party"] == self.party]
         logger.message(f"Dataset shape: {df.shape}")
         return df
