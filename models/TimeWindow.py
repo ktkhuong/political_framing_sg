@@ -37,6 +37,7 @@ class TimeWindow:
         self.coherence = coherence
 
         if self.id.count("/") == 0: # only applicable to root
+            """
             self.fit_children(coherence_model, 5, 15)
 
             logger.info(f"Assign extra topics to leaf topic...")
@@ -56,6 +57,22 @@ class TimeWindow:
                         best_similarity = similarity
                 logger.info(f"extra: {self.speech_ids[row]}, {best_topic.id}, {best_similarity}")
                 self.extras.append((self.speech_ids[row], best_topic.id, best_similarity))
+            """
+            logger.info(f"Fit extra topics...")
+            extra_topics, extra_coherence = choose_topics(
+                self.tfidf_matrix[self.extra_speeches], 
+                self.vocab, 
+                coherence_model, 
+                min_n_components=min(2, len(self.extra_speeches)), 
+                max_n_components=min(15, len(self.extra_speeches)),
+            )
+            for i, topic in enumerate(extra_topics):
+                k = i + len(self.topics)
+                topic.id = f"{self.id}/{str(k).zfill(2)}"
+            self.extras = extra_topics
+            # coherence = weighted average of topics and extras
+            total = len(self.topics) + len(self.extras)
+            self.coherence = self.coherence * len(self.topics) / total + extra_coherence * len(self.extras) / total
 
             self.save(f"{self.OUT_PATH}/{self.id}.pkl")
         
@@ -98,6 +115,10 @@ class TimeWindow:
     @property
     def W(self):
         return np.array([topic.document_weights for topic in self.topics]).T
+
+    @property
+    def W_extra(self):
+        return np.array([topic.document_weights for topic in self.extras]).T
 
     @property
     def extra_speeches(self):
@@ -148,7 +169,6 @@ class TimeWindow:
         _, n_topics = W.shape
         x = np.argmax(W, axis=1)
         hist, _ = np.histogram(x, bins=range(n_topics+1))
-        #return np.array([i for i, freq in enumerate(hist) if freq > self.m])
         cols, *_ = np.where(hist > self.m)
         return cols
     
@@ -172,11 +192,14 @@ class TimeWindow:
         Assuming a single membership model, i.e. each speech has 1 topic with the highest weight 
         """
         topics = np.argmax(self.W[self.assigned_speeches], axis=1)
+        extras = np.argmax(self.W_extra, axis=1)
+        temp = {j:i for i,j in enumerate(self.extra_speeches)}
         speech2topic = [(self.speech_ids[speech], self.topics[topic].id, self.W[speech, topic]) for speech, topic in zip(self.assigned_speeches, topics)]
-        for child in self.children:
-            speech2topic += child.speech2topic
-        speech2topic += self.extras
-        return speech2topic
+        speech2extra = [(self.speech_ids[speech], self.extras[topic].id, self.W_extra[temp[speech], topic]) for speech, topic in zip(self.extra_speeches, extras)]
+        #for child in self.children:
+        #    speech2topic += child.speech2topic
+        #speech2topic += self.extras
+        return speech2topic + speech2extra
 
     def top_term_weights(self, n_top):
         """
