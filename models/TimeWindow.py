@@ -143,7 +143,7 @@ class TimeWindow:
         """
         topics of this time windows & its children
         """
-        topics = self.topics[:]
+        topics = self.topics[:] + self.extras[:]
         for child in self.children:
             topics += child.all_topics
         return topics
