@@ -36,7 +36,7 @@ class TimeWindow:
         self.topics = topics
         self.coherence = coherence
 
-        if self.id.count("/") == 0: # only applicable to root
+        if self.id.count("/") == 0 and len(self.extra_speeches) > 0: # only applicable to root
             """
             self.fit_children(coherence_model, 5, 15)
 
