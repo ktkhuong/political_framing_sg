@@ -74,7 +74,7 @@ class TimeWindow:
             total = len(self.topics) + len(self.extras)
             self.coherence = self.coherence * len(self.topics) / total + extra_coherence * len(self.extras) / total
 
-            self.save(f"{self.OUT_PATH}/{self.id}.pkl")
+        self.save(f"{self.OUT_PATH}/{self.id}.pkl")
         
         logger.info(f"{self.id}: {self.num_speeches} speeches; {self.num_topics} topics; coherence = {self.coherence};")
         logger.info("-----------------------------------------------------------------------------")
