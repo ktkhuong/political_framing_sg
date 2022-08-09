@@ -9,7 +9,7 @@ class DynamicTopics:
     @property
     def wt2dt(self):
         """
-        Assuming a single membership model, i.e. each speech belongs to 1 dynamic topic with the highest weight 
+        Assuming a single membership model, i.e. each window topic belongs to 1 dynamic topic with the highest weight 
         """
         W = np.array([topic.document_weights for topic in self.topics]).T
         return np.argmax(W, axis=1)
