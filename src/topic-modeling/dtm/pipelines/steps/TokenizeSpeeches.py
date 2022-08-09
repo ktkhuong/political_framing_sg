@@ -47,20 +47,17 @@ class TokenizeSpeeches(BaseEstimator, TransformerMixin):
         df["tokenized_speech"] = self.tokenize(df["preprocessed_speech"].values) 
         return df
 
-    def tokenize(self, documents, batch_size=100, n_process=4):
+    def tokenize(self, documents, batch_size=100, n_process=4, allowed_postags=['NOUN']):
         docs = [" ".join(
-            self.remove_stopwords(
-                self.sent2tokens(
-                    self.doc2sent(
-                        doc
-                    )
+            self.sent2tokens(
+                self.doc2sent(
+                    doc
                 )
             )
         ) for doc in documents]
-        lemmatized = [" ".join([token.lemma_ for token in doc]) for doc in tqdm(
+        lemmatized = [" ".join([token.lemma_ for token in doc if token.pos_ in allowed_postags and token.lemma_ not in stop_words]) for doc in tqdm(
             self.nlp.pipe(docs, batch_size=batch_size, n_process=n_process), 
             total=len(docs),
-            desc="[INFO] Tokenize speeches' progress"
             )]
         return lemmatized
 
@@ -70,12 +67,5 @@ class TokenizeSpeeches(BaseEstimator, TransformerMixin):
     def sent2tokens(self, sentences):
         sent_tokens = [simple_preprocess(sentence, deacc=True, min_len=3) for sentence in sentences]
         return [token for tokens in sent_tokens for token in tokens]
-
-    def remove_stopwords(self, tokens):
-        return [token for token in tokens if token not in stop_words]
-
-    def lemmatize(self, tokens, allowed_postags=['NOUN']):
-        doc = self.nlp(" ".join(tokens))
-        return [token.lemma_ for token in doc if token.pos_ in allowed_postags]
 
     
