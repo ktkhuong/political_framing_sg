@@ -13,6 +13,7 @@ class SaveDataFrameToDb(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         df = X
         conn = sqlite3.connect(self.db_name)
-        df.to_sql(name=self.table_name, con=conn)
+        #df.to_sql(name=self.table_name, con=conn)
+        df.to_csv("sgparl_tokenized.csv")
         conn.close()
         return df
