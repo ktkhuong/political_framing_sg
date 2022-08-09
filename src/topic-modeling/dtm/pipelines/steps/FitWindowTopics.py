@@ -38,8 +38,7 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         
     def fit_windows(self, host):
         commands = [
-            "sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v/w2v_ext_stopwords.model",
-            "sudo mv cloud/data/w2v_ext_stopwords.model cloud/data/w2v.model",
+            "sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v/w2v.model",
             "cd cloud",
             "python3 -m venv env",
             "source env/bin/activate",
