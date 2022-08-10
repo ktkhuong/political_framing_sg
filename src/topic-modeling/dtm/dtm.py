@@ -12,7 +12,7 @@ from pipelines.steps.SortByDates import SortByDates
 from pipelines.steps.ReadDataset import ReadDataset
 from pipelines.steps.RemoveShortSpeeches import RemoveShortSpeeches
 from pipelines.steps.TokenizeSpeeches import TokenizeSpeeches
-from pipelines.steps.FitWord2VecAndTfidf import FitWord2VecAndTfidf
+from pipelines.steps.FitWord2Vec import FitWord2Vec
 from pipelines.steps.PartitionToTimeWindows import PartitionToTimeWindows
 from pipelines.steps.ExportData import ExportData
 from models.CoherenceModel import CvCoherenceModel
@@ -103,8 +103,8 @@ def main():
             ("Save data frame to db", SaveDataFrameToDb()),
             ("Two-layers NMF", Pipeline(
                 steps=[
-                    ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf(min_df=options.min_df, max_df=options.max_df, max_features=options.max_features)),
-                    ("Partition to time windows", PartitionToTimeWindows()),
+                    ("Fit Word2Vec And TF-IDF", FitWord2Vec()),
+                    ("Partition to time windows", PartitionToTimeWindows(min_df=options.min_df, max_df=options.max_df, max_features=options.max_features)),
                     ("Export pickles", ExportData()),
                     ("Fit window topics", FitWindowTopics(VIRTUAL_MACHINES[:options.machines], min_n_components=min_k, max_n_components=max_k)),
                     ("Fit dynamic topics", FitDynamicTopics(min_n_components=min_d, max_n_components=max_d, n_terms=20)),

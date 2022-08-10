@@ -70,7 +70,7 @@ class TimeWindow:
         """
         weight of top terms of all topics
         """
-        return [topic.top_term_weights(n_top) for topic in self.all_topics]
+        return [topic.top_term_weights(n_top) for topic in self.topics]
 
     def save(self, path):
         with open(path, 'wb') as f:

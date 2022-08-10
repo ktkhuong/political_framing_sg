@@ -19,7 +19,7 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
         logger = logging.getLogger(__name__)
 
-        coherence_model, vocab, time_windows = X
+        coherence_model, time_windows = X
         stacked = np.vstack([time_window.top_term_weights(self.n_terms) for time_window in time_windows])
         keep_terms = stacked.sum(axis=0) != 0
         keep_term_names = np.array(vocab)[keep_terms]

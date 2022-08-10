@@ -17,13 +17,14 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
-        coherence_model, vocab, time_windows = X
+        coherence_model, time_windows = X
 
         used = self.upload_data()
         self.run_machine(used, self.fit_windows)
         self.download_data(used)
         time_windows = self.concat()
-        return coherence_model, vocab, time_windows
+
+        return coherence_model, time_windows
 
     def run_machine(self, used, target):
         threads = []
@@ -63,8 +64,6 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
             p.wait()
             #p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/w2v.model machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
             #p.wait()
-            p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/vocab.pkl machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
-            p.wait()
             i += 1
             # load balancing: round-robin
             if i > len(self.machines):
