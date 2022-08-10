@@ -36,9 +36,6 @@ def fit_window_topics(min_k=10, max_k=25):
         coherence_model = CvCoherenceModel.load(DATA_PATH+"/cv.model")
     else:
         raise RuntimeError("Coherence model NOT found!")
-    # 3. Read vocab
-    with open(DATA_PATH+'/vocab.pkl', 'rb') as f:
-        vocab = pickle.load(f)
     # 4. Fit window topics
     for time_window in time_windows:
         time_window.fit(coherence_model, min_k, max_k)
