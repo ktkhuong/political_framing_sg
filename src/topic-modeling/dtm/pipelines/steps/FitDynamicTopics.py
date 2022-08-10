@@ -26,7 +26,7 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
         all_weights = []
         all_terms = []
         for time_window in time_windows:
-            weights, terms = time_window.topic_weights()
+            weights, terms = time_window.topic_weights
             all_weights += weights
             all_terms += terms
         all_terms = list(set(all_terms))
@@ -39,6 +39,10 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
                 M[row, term_col_map[term]] = topic_weights[term]
         normalizer = Normalizer(norm='l2', copy=True)
         tfidf_matrix = normalizer.fit_transform(M)
+
+        logger.message(f"TF-IDF: {tfidf_matrix.shape}")
+        logger.message(f"Topics: {len(all_weights)}")
+        logger.message(f"Terms: {len(all_terms)}")
         """
         stacked = np.vstack([time_window.top_term_weights(self.n_terms) for time_window in time_windows])
         keep_terms = stacked.sum(axis=0) != 0
@@ -50,7 +54,7 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
             tfidf_matrix, 
             all_terms, 
             coherence_model, 
-            self.min_n_components, 
+            min(self.min_n_components, tfidf_matrix.shape[0]), 
             min(self.max_n_components, tfidf_matrix.shape[0])
         )
         logger.message(f"Dynamic topics: {len(topics)} topics; coherence = {coherence}")

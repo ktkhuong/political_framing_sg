@@ -36,7 +36,7 @@ class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
                     window = TimeWindow(
                         f"{year}Q{quarter}", 
                         records,
-                        tfidf_matrix[records],
+                        tfidf_matrix,
                         tfidf.get_feature_names_out()
                     )
                     time_windows.append(window)
