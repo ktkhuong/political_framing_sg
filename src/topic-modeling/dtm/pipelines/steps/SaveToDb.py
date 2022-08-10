@@ -24,7 +24,7 @@ class SaveToDb(BaseEstimator, TransformerMixin):
 
     def save_window_topics(self, time_windows):
         conn = sqlite3.connect(self.db_name)
-        data = [(topic.id, " ".join(topic.top_terms()), topic.coherence, ",".join(map(str, topic.term_weights[topic.top_term_indices()]))) for time_window in time_windows for topic in time_window.all_topics]
+        data = [(topic.id, " ".join(topic.top_terms()), topic.coherence, ",".join(map(str, topic.term_weights[topic.top_term_indices()]))) for time_window in time_windows for topic in time_window.topics]
         df_window_topics = pd.DataFrame(data, columns=["id","terms","coherence", "term_weights"]).set_index("id")
         df_window_topics.to_sql(name=self.TABLE_WINDOW_TOPICS, con=conn)
         conn.close()
@@ -53,9 +53,9 @@ class SaveToDb(BaseEstimator, TransformerMixin):
         offset = 0
         wt2dt = dynamic_topics.wt2dt
         for time_window in dynamic_topics.time_windows:
-            for i, topic in enumerate(time_window.all_topics):
+            for i, topic in enumerate(time_window.topics):
                 data[topic.id] = wt2dt[i+offset]
-            offset += len(time_window.all_topics)
+            offset += len(time_window.topics)
         df_wt2dt = pd.DataFrame(data.items(), columns=["window_topic", "dynamic_topic"])
         df_wt2dt.to_sql(name=self.TABLE_WINDOW_TOPIC_2_DYNAMIC_TOPIC, con=conn)
 
