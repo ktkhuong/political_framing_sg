@@ -40,25 +40,29 @@ VIRTUAL_MACHINES = [
     ("34.105.150.137", "europe-west2-c"),
     ("35.197.243.136", "europe-west2-c"),
     ("34.105.223.204", "europe-west2-c"),
-    ("34.105.150.137", "europe-west2-c"),
-    ("35.242.189.94", "europe-west2-c"),
-    ("35.197.243.136", "europe-west2-c"),
-    ("34.159.79.175", "europe-west3-c"),
-    ("34.89.197.49", "europe-west3-c"),
-    ("34.141.53.127", "europe-west3-c"),
-    ("34.141.5.49", "europe-west3-c"),
-    ("34.159.18.247", "europe-west3-c"),
-    ("35.242.244.194", "europe-west3-c"),
-    ("34.159.212.162", "europe-west3-c"),
-    ("34.89.198.67", "europe-west3-c"),
-    ("35.233.114.39", "europe-west1-b"),
-    ("34.79.46.120", "europe-west1-b"),
-    ("34.76.181.226", "europe-west1-b"),
-    ("35.205.126.153", "europe-west1-b"),
-    ("34.79.16.118", "europe-west1-b"),
-    ("35.190.204.12", "europe-west1-b"),
-    ("34.77.120.239", "europe-west1-b"),
-    ("35.241.181.102", "europe-west1-b"),
+    
+    ("35.189.122.246", "europe-west2-c"),
+    ("34.105.163.112", "europe-west2-c"),
+    ("34.105.242.139", "europe-west2-c"),
+    ("35.198.160.248", "europe-west3-c"),
+    ("34.159.134.229", "europe-west3-c"),
+
+    ("34.159.128.17", "europe-west3-c"),
+    ("34.89.241.8", "europe-west3-c"),
+    ("35.242.246.209", "europe-west3-c"),
+    ("34.159.85.56", "europe-west3-c"),
+    ("34.141.17.127", "europe-west3-c"),
+
+    ("35.198.187.22", "europe-west3-c"),
+    ("35.240.80.244", "europe-west1-b"),
+    ("104.155.115.236", "europe-west1-b"),
+    ("34.140.51.174", "europe-west1-b"),
+    ("34.78.19.79", "europe-west1-b"),
+
+    ("35.195.10.236", "europe-west1-b"),
+    ("34.77.220.115", "europe-west1-b"),
+    ("35.187.1.101", "europe-west1-b"),
+    ("146.148.25.109", "europe-west1-b"),
 ]
 
 COHERENCE_W2V = "w2v"
@@ -70,9 +74,12 @@ def main():
     parser.add_option("-f", "--from", action="store", type="string", dest="start_date", help="starting date", default=None)
     parser.add_option("-t", "--to", action="store", type="string", dest="end_date", help="end date", default=None)
     parser.add_option("-m", "--machines", action="store", type=int, dest="machines", help="number of available virtual machines", default=len(VIRTUAL_MACHINES))
-    parser.add_option("-x", "--max-df", action="store", type=float, dest="max_df", help="max_df of TF-IDF", default=0.2)
+    parser.add_option("-x", "--max-df", action="store", type=float, dest="max_df", help="max_df of TF-IDF", default=0.9)
+    parser.add_option("-y", "--min-df", action="store", type=int, dest="min_df", help="min_df of TF-IDF", default=5)
     parser.add_option("-k", "--krange", action="store", type="string", dest="krange", help="range of num of window topics, comma separated", default="15,40")
+    parser.add_option("-d", "--drange", action="store", type="string", dest="drange", help="range of dynamic topics, comma separated", default="25,120")
     parser.add_option("-s", "--max-features", action="store", type=int, dest="max_features", help="max features of TF-IDF", default=None)
+    parser.add_option("-p", "--party", action="store", type="string", dest="party", help="political party to be considered", default="all")
     (options, args) = parser.parse_args()
     if options.url == None:
         parser.error("Must specify URL to dataset")
@@ -82,12 +89,13 @@ def main():
             os.makedirs(path)
 
     min_k, max_k = list(map(int, options.krange.split(",")))
+    min_d, max_d = list(map(int, options.drange.split(",")))
 
     pipeline = Pipeline(
         steps=[
             ("Setup virtual machines", SetupVirtualMachines(VIRTUAL_MACHINES[:options.machines])),
-            #("Preprocess dataset", PreprocessDataset(VIRTUAL_MACHINES[:machines], url)),
-            ("Read dataset", ReadDataset()),
+            #("Preprocess dataset", PreprocessDataset(VIRTUAL_MACHINES[:options.machines], url)),
+            ("Read dataset", ReadDataset(party=options.party)),
             ("Filter data frame by dates", FilterByDates(options.start_date, options.end_date)),
             ("Remove short speeches", RemoveShortSpeeches()),
             ("Sort data frame by dates", SortByDates()),
@@ -95,11 +103,11 @@ def main():
             ("Save data frame to db", SaveDataFrameToDb()),
             ("Two-layers NMF", Pipeline(
                 steps=[
-                    ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf(max_df=options.max_df, max_features=options.max_features)),
+                    ("Fit Word2Vec And TF-IDF", FitWord2VecAndTfidf(min_df=options.min_df, max_df=options.max_df, max_features=options.max_features)),
                     ("Partition to time windows", PartitionToTimeWindows()),
                     ("Export pickles", ExportData()),
                     ("Fit window topics", FitWindowTopics(VIRTUAL_MACHINES[:options.machines], min_n_components=min_k, max_n_components=max_k)),
-                    ("Fit dynamic topics", FitDynamicTopics(min_n_components=25, max_n_components=120, n_terms=20)),
+                    ("Fit dynamic topics", FitDynamicTopics(min_n_components=min_d, max_n_components=max_d, n_terms=20)),
                 ]
             )),
             ("Save to db", SaveToDb()),
