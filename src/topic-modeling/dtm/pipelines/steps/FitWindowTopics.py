@@ -80,6 +80,11 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
             p.wait()
 
     def concat(self):
+        logger = logging.getLogger(__name__)
+
         paths = ["in/"+f for f in os.listdir("in") if f.endswith(".pkl")]
+        paths.sort()
         time_windows = [TimeWindow.load(path) for path in paths]
+        for time_window in time_windows:
+            logger.message(f"Loading window {time_window.id} ...")
         return time_windows

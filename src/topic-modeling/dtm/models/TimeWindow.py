@@ -1,9 +1,6 @@
 import numpy as np
 import pickle, logging
-import pandas as pd
-from scipy import spatial
 from nmf import choose_topics
-from sklearn.preprocessing import normalize
 
 class TimeWindow:
     OUT_PATH = "out"
@@ -65,6 +62,12 @@ class TimeWindow:
         topics = np.argmax(self.W, axis=1)
         speech2topic = [(self.speech_ids[speech_index], self.topics[topic_index].id, self.W[speech_index, topic_index]) for speech_index, topic_index in enumerate(topics)]
         return speech2topic
+
+    @property
+    def topic_weights(self):
+        weights = [topic.weights(n_top=20) for topic in self.topics]
+        terms = set([term for weight in weights for term in weight.keys()])
+        return weights, list(terms)
 
     def top_term_weights(self, n_top):
         """

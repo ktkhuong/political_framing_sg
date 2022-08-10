@@ -25,3 +25,11 @@ class Topic:
         top_word_index = [word_to_index[word] for word in self.top_terms(n_top)]
         row[top_word_index] = self.term_weights[top_word_index]
         return row
+
+    def weights(self, n_top):
+        topic_weights = {}
+        top_indices = self.top_term_indices(n_top)
+        for i in top_indices:
+            topic_weights[self.vocab[i]] = self.term_weights[i]
+        return topic_weights
+

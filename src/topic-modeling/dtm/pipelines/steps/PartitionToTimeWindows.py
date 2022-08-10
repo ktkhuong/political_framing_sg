@@ -37,7 +37,7 @@ class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
                         f"{year}Q{quarter}", 
                         records,
                         tfidf_matrix[records],
-                        tfidf.vocabulary_
+                        tfidf.get_feature_names_out()
                     )
                     time_windows.append(window)
                     logger.message(f"{window.id}: {df_quater.shape}")

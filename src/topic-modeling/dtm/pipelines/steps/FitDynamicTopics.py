@@ -1,9 +1,11 @@
+from unicodedata import normalize
 from sklearn.base import BaseEstimator, TransformerMixin
 import numpy as np
 from sklearn.decomposition import NMF
-from sklearn.preprocessing import normalize
+from sklearn.preprocessing import Normalizer
 import logging
 from models.Topic import Topic
+from nmf import choose_topics
 from models.DynamicTopics import DynamicTopics
 import warnings
 
@@ -20,44 +22,36 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
         logger = logging.getLogger(__name__)
 
         coherence_model, time_windows = X
+
+        all_weights = []
+        all_terms = []
+        for time_window in time_windows:
+            weights, terms = time_window.topic_weights()
+            all_weights += weights
+            all_terms += terms
+        all_terms = list(set(all_terms))
+
+        M = np.zeros( (len(all_weights), len(all_terms)) )
+        term_col_map = {term: i for i, term in enumerate(all_terms)}
+        
+        for row, topic_weights in enumerate(all_weights):
+            for term in topic_weights.keys():
+                M[row, term_col_map[term]] = topic_weights[term]
+        normalizer = Normalizer(norm='l2', copy=True)
+        tfidf_matrix = normalizer.fit_transform(M)
+        """
         stacked = np.vstack([time_window.top_term_weights(self.n_terms) for time_window in time_windows])
         keep_terms = stacked.sum(axis=0) != 0
         keep_term_names = np.array(vocab)[keep_terms]
         reduced = stacked[:,keep_terms]
         tfidf_matrix = normalize(reduced, axis=1, norm='l2')
-        topics, coherence = self.choose_topics(
+        """
+        topics, coherence = choose_topics(
             tfidf_matrix, 
-            keep_term_names, 
+            all_terms, 
             coherence_model, 
             self.min_n_components, 
             min(self.max_n_components, tfidf_matrix.shape[0])
         )
         logger.message(f"Dynamic topics: {len(topics)} topics; coherence = {coherence}")
         return DynamicTopics(topics, coherence, time_windows)
-
-    def choose_topics(self, tfidf_matrix, vocab, coherence_model, min_n_components=10, max_n_components=25):
-        logger = logging.getLogger(__name__)
-
-        best_coherence = float('-inf')
-        best_topics = None
-        coherences = []
-        for n_components in range(min_n_components, max_n_components+1):
-            w, h = self.fit_nmf(tfidf_matrix, n_components)
-            topics = [Topic(term_weights, doc_weights, vocab) for term_weights, doc_weights in zip(h, w.T)]
-
-            avg_coherence = sum(coherence_model.compute_coherence(topic) for topic in topics) / len(topics)
-            coherences.append(avg_coherence)
-            if avg_coherence > best_coherence:
-                best_coherence = avg_coherence
-                best_topics = topics
-            logger.message(f"k = {n_components}; coherence = {avg_coherence}")
-        logger.message(f"Best: k = {len(best_topics)}; coherence = {best_coherence}")
-        return best_topics, best_coherence
-
-    def fit_nmf(self, tfidf_matrix, n_components):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            model = NMF(n_components=n_components, init='nndsvd', solver='mu')
-            w = model.fit_transform(tfidf_matrix)
-            h = model.components_
-        return w, h
