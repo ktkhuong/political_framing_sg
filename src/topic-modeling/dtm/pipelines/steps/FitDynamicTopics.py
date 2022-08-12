@@ -41,8 +41,6 @@ class FitDynamicTopics(BaseEstimator, TransformerMixin):
         tfidf_matrix = normalizer.fit_transform(M)
 
         logger.message(f"TF-IDF: {tfidf_matrix.shape}")
-        logger.message(f"Topics: {len(all_weights)}")
-        logger.message(f"Terms: {len(all_terms)}")
         """
         stacked = np.vstack([time_window.top_term_weights(self.n_terms) for time_window in time_windows])
         keep_terms = stacked.sum(axis=0) != 0

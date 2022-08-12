@@ -17,8 +17,8 @@ def choose_topics(tfidf_matrix, vocab, coherence_model, min_n_components=10, max
         if avg_coherence > best_coherence:
             best_coherence = avg_coherence
             best_topics = topics
-        logger.info(f"k = {n_components}; coherence = {avg_coherence}")
-    logger.info(f"Best: k = {len(best_topics)}; coherence = {best_coherence}")
+        logger.message(f"k = {n_components}; coherence = {avg_coherence}")
+    logger.message(f"Best: k = {len(best_topics)}; coherence = {best_coherence}")
     return best_topics, best_coherence
 
 def fit_nmf(tfidf_matrix, n_components):

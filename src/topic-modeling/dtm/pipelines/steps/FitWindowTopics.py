@@ -39,7 +39,9 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         
     def fit_windows(self, host):
         commands = [
-            "sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v/w2v.model",
+            "sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model",
+            #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model.syn1neg.npy",
+            #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model.wv.vectors.npy",
             "cd cloud",
             "python3 -m venv env",
             "source env/bin/activate",
@@ -53,7 +55,8 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
     def upload_data(self):
         logger = logging.getLogger(__name__)
 
-        years = set([f[:4] for f in os.listdir("out") if f.endswith(".pkl") and not f.startswith("vocab")])
+        years = list(set([f[:4] for f in os.listdir("out") if f.endswith(".pkl") and not f.startswith("vocab")]))
+        years.sort()
         used = set()
         i = 1
         for year in years:

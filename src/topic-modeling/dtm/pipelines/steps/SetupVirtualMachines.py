@@ -14,8 +14,10 @@ class SetupVirtualMachines(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X, y=None):
+        logger = logging.getLogger(__name__)
         threads = []
-        for host, _ in self.machines:
+        for i, (host, _) in enumerate(self.machines):
+            logger.message(f"machine{str(i+1).zfill(2)} {host} setup ...")
             t = threading.Thread(target=self.setup, args=(host,))
             t.start()
             threads.append(t)
@@ -25,8 +27,6 @@ class SetupVirtualMachines(BaseEstimator, TransformerMixin):
         return X
 
     def setup(self, host):
-        logger = logging.getLogger(__name__)
-        logger.message(f"{host} setup ...")
         commands = [
             "sudo rm -rf *",
             "git clone -b cloud --single-branch https://github.com/ktkhuong/sgparl.git cloud",

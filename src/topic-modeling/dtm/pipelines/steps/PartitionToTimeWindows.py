@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import logging
 
 class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
-    def __init__(self, min_df=5, max_df=0.2, max_features=None):
+    def __init__(self, min_df=5, max_df=0.9, max_features=None):
         self.max_df = max_df
         self.min_df = min_df
         self.max_features = max_features

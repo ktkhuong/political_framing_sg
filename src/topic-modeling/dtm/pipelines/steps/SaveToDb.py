@@ -24,7 +24,7 @@ class SaveToDb(BaseEstimator, TransformerMixin):
 
     def save_window_topics(self, time_windows):
         conn = sqlite3.connect(self.db_name)
-        data = [(topic.id, " ".join(topic.top_terms()), topic.coherence, ",".join(map(str, topic.term_weights[topic.top_term_indices()]))) for time_window in time_windows for topic in time_window.topics]
+        data = [(topic.id, " ".join(topic.top_terms(20)), topic.coherence, ",".join(map(str, topic.term_weights[topic.top_term_indices()]))) for time_window in time_windows for topic in time_window.topics]
         df_window_topics = pd.DataFrame(data, columns=["id","terms","coherence", "term_weights"]).set_index("id")
         df_window_topics.to_sql(name=self.TABLE_WINDOW_TOPICS, con=conn)
         conn.close()
@@ -41,7 +41,7 @@ class SaveToDb(BaseEstimator, TransformerMixin):
     def save_dynamic_topics(self, dynamic_topics):
         dynamic_topics.save("dtm.pkl")
         conn = sqlite3.connect(self.db_name)
-        data = [(i, " ".join(topic.top_terms()), topic.coherence, ",".join(map(str, topic.term_weights[topic.top_term_indices()]))) for i, topic in enumerate(dynamic_topics.topics)]
+        data = [(i, " ".join(topic.top_terms(20)), topic.coherence, ",".join(map(str, topic.term_weights[topic.top_term_indices()]))) for i, topic in enumerate(dynamic_topics.topics)]
         df_dynamic_topics = pd.DataFrame(data, columns=["id","terms","coherence", "term_weights"]).set_index("id")
         df_dynamic_topics.to_sql(name=self.TABLE_DYNAMIC_TOPICS, con=conn)
         conn.close()

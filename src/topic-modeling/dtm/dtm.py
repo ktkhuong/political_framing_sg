@@ -74,6 +74,7 @@ def main():
     parser.add_option("-f", "--from", action="store", type="string", dest="start_date", help="starting date", default=None)
     parser.add_option("-t", "--to", action="store", type="string", dest="end_date", help="end date", default=None)
     parser.add_option("-m", "--machines", action="store", type=int, dest="machines", help="number of available virtual machines", default=len(VIRTUAL_MACHINES))
+    parser.add_option("-c", "--min-count", action="store", type=int, dest="min_count", help="min_count of W2V", default=5)
     parser.add_option("-x", "--max-df", action="store", type=float, dest="max_df", help="max_df of TF-IDF", default=0.9)
     parser.add_option("-y", "--min-df", action="store", type=int, dest="min_df", help="min_df of TF-IDF", default=5)
     parser.add_option("-k", "--krange", action="store", type="string", dest="krange", help="range of num of window topics, comma separated", default="15,40")
@@ -103,7 +104,7 @@ def main():
             ("Save data frame to db", SaveDataFrameToDb()),
             ("Two-layers NMF", Pipeline(
                 steps=[
-                    ("Fit Word2Vec And TF-IDF", FitWord2Vec()),
+                    ("Fit Word2Vec And TF-IDF", FitWord2Vec(min_count=options.min_count)),
                     ("Partition to time windows", PartitionToTimeWindows(min_df=options.min_df, max_df=options.max_df, max_features=options.max_features)),
                     ("Export pickles", ExportData()),
                     ("Fit window topics", FitWindowTopics(VIRTUAL_MACHINES[:options.machines], min_n_components=min_k, max_n_components=max_k)),
