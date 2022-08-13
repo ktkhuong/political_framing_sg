@@ -9,7 +9,7 @@ from nmf import choose_topics
 from models.DynamicTopics import DynamicTopics
 import warnings
 
-class FitDynamicTopics(BaseEstimator, TransformerMixin):
+class SecondLayerNMF(BaseEstimator, TransformerMixin):
     def __init__(self, min_n_components=25, max_n_components=90, n_terms=20):
         self.min_n_components = min_n_components
         self.max_n_components = max_n_components

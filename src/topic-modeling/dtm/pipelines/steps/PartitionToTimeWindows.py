@@ -31,6 +31,9 @@ class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
 
                 if len(records) > 0: 
                     quarterly_speeches = df["tokenized_speech"].values[records]
+                    # fit Word2Vec
+                    
+                    # fit TF-IDF
                     tfidf = TfidfVectorizer(norm='l2', max_df=self.max_df, min_df=self.min_df, max_features=self.max_features)
                     tfidf_matrix = tfidf.fit_transform(quarterly_speeches)
                     window = TimeWindow(

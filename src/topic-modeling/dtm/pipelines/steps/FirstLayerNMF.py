@@ -5,7 +5,7 @@ import os, subprocess, logging
 import threading
 from models.TimeWindow import TimeWindow
 
-class FitWindowTopics(BaseEstimator, TransformerMixin):
+class FirstLayerNMF(BaseEstimator, TransformerMixin):
     PRIVATE_KEY = "ssh/sgparl_private.ppk"
 
     def __init__(self, machines, min_n_components=10, max_n_components=25):
@@ -39,7 +39,7 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
         
     def fit_windows(self, host):
         commands = [
-            "sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model",
+            #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model",
             #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model.syn1neg.npy",
             #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model.wv.vectors.npy",
             "cd cloud",
@@ -65,8 +65,8 @@ class FitWindowTopics(BaseEstimator, TransformerMixin):
             used.add(i)
             p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/{year}*.pkl machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
             p.wait()
-            #p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/w2v.model machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
-            #p.wait()
+            p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/w2v.model machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
+            p.wait()
             i += 1
             # load balancing: round-robin
             if i > len(self.machines):

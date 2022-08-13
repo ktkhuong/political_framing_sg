@@ -17,6 +17,6 @@ class FitWord2Vec(BaseEstimator, TransformerMixin):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             speeches = df["tokenized_speech"].values
-            w2v = Word2Vec([speech.split() for speech in speeches], min_count=self.min_count, vector_size=500, sg=0, window=5)
+            w2v = Word2Vec([speech.split() for speech in speeches], min_count=self.min_count, vector_size=200, sg=1, window=5)
             coherence_model = Word2VecCoherenceModel(w2v)
         return df, coherence_model
