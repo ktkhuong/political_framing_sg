@@ -39,9 +39,9 @@ class FirstLayerNMF(BaseEstimator, TransformerMixin):
         
     def fit_windows(self, host):
         commands = [
-            #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model",
-            #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model.syn1neg.npy",
-            #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model.wv.vectors.npy",
+            "sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_pap/w2v.model",
+            #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_pap/w2v.model.syn1neg.npy",
+            #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_pap/w2v.model.wv.vectors.npy",
             "cd cloud",
             "python3 -m venv env",
             "source env/bin/activate",
@@ -65,8 +65,8 @@ class FirstLayerNMF(BaseEstimator, TransformerMixin):
             used.add(i)
             p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/{year}*.pkl machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
             p.wait()
-            p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/w2v.model machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
-            p.wait()
+            #p = subprocess.Popen(f"gcloud compute scp --recurse --zone={zone} out/w2v.model machine{str(i).zfill(2)}:/home/sgparl/cloud/data", shell=True)
+            #p.wait()
             i += 1
             # load balancing: round-robin
             if i > len(self.machines):

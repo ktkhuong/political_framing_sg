@@ -16,6 +16,8 @@ def preprocess_speech(speech):
     speech = re.sub(r'([a-z])\1{2,}', r'\1', speech)
     # non-word repetition (if more than 1)
     speech = re.sub(r'([\W+])\1{1,}', r'\1', speech)
+    # combine hyphenated words
+    speech = re.sub(r'((?:\w+-)+\w+)', lambda x: ''.join(x.group().split('-')), speech)
     # remove "'s"
     speech = re.sub(r"'s ", ' ', speech)
     # stuff in parenthesis, assumed to be less informal
@@ -79,11 +81,13 @@ def preprocess_members(df_input, members):
     return df_input
 
 def preprocess_df(df_input, members):
-    # drop rows where member is empty
-    df_input = drop_empty(df_input, ["member"])
-    
     # lowercase
     df_input = lowercase(df_input, ["section", "title", "member"])
+
+    # drop rows where member is empty
+    df_input = drop_empty(df_input, ["member", "preprocessed_speech"])
+    # drop rows if member is "speaker"
+    df_input = df_input[df_input["member"].str.contains("speaker") == False]
     
     # 'member' only accept alpha numeric characters
     df_input['member'] = df_input['member'].map(lambda text: re.sub(r"[^a-z. ]", "", text))    

@@ -2,8 +2,8 @@ import os, getopt, sys, logging
 from sklearn.pipeline import Pipeline
 from pipelines.steps.FilterByDates import FilterByDates
 from pipelines.steps.FitCvAndTfidf import FitCvAndTfidf
-from pipelines.steps.FitDynamicTopics import FitDynamicTopics
-from pipelines.steps.FitWindowTopics import FitWindowTopics
+from pipelines.steps.SecondLayerNMF import SecondLayerNMF
+from pipelines.steps.FirstLayerNMF import FirstLayerNMF
 from pipelines.steps.PreprocessDataset import PreprocessDataset
 from pipelines.steps.SaveDataFrameToDb import SaveDataFrameToDb
 from pipelines.steps.SaveToDb import SaveToDb
@@ -75,8 +75,8 @@ def main():
     parser.add_option("-t", "--to", action="store", type="string", dest="end_date", help="end date", default=None)
     parser.add_option("-m", "--machines", action="store", type=int, dest="machines", help="number of available virtual machines", default=len(VIRTUAL_MACHINES))
     parser.add_option("-c", "--min-count", action="store", type=int, dest="min_count", help="min_count of W2V", default=5)
-    parser.add_option("-x", "--max-df", action="store", type=float, dest="max_df", help="max_df of TF-IDF", default=0.9)
-    parser.add_option("-y", "--min-df", action="store", type=int, dest="min_df", help="min_df of TF-IDF", default=5)
+    parser.add_option("-x", "--max-df", action="store", type="string", dest="max_df", help="max_df of TF-IDF", default="1.0")
+    parser.add_option("-y", "--min-df", action="store", type="string", dest="min_df", help="min_df of TF-IDF", default="1")
     parser.add_option("-k", "--krange", action="store", type="string", dest="krange", help="range of num of window topics, comma separated", default="15,40")
     parser.add_option("-d", "--drange", action="store", type="string", dest="drange", help="range of dynamic topics, comma separated", default="25,120")
     parser.add_option("-s", "--max-features", action="store", type=int, dest="max_features", help="max features of TF-IDF", default=None)
@@ -91,6 +91,8 @@ def main():
 
     min_k, max_k = list(map(int, options.krange.split(",")))
     min_d, max_d = list(map(int, options.drange.split(",")))
+    min_df = int(options.min_df) if options.min_df.find(".") == -1 else float(options.min_df)
+    max_df = int(options.max_df) if options.max_df.find(".") == -1 else float(options.max_df)
 
     pipeline = Pipeline(
         steps=[
@@ -105,10 +107,10 @@ def main():
             ("Two-layers NMF", Pipeline(
                 steps=[
                     ("Fit Word2Vec And TF-IDF", FitWord2Vec(min_count=options.min_count)),
-                    ("Partition to time windows", PartitionToTimeWindows(min_df=options.min_df, max_df=options.max_df, max_features=options.max_features)),
+                    ("Partition to time windows", PartitionToTimeWindows(min_df=min_df, max_df=max_df, max_features=options.max_features)),
                     ("Export pickles", ExportData()),
-                    ("Fit window topics", FitWindowTopics(VIRTUAL_MACHINES[:options.machines], min_n_components=min_k, max_n_components=max_k)),
-                    ("Fit dynamic topics", FitDynamicTopics(min_n_components=min_d, max_n_components=max_d, n_terms=20)),
+                    ("First layer NMF", FirstLayerNMF(VIRTUAL_MACHINES[:options.machines], min_n_components=min_k, max_n_components=max_k)),
+                    ("Second layer NMF", SecondLayerNMF(min_n_components=min_d, max_n_components=max_d, n_terms=20)),
                 ]
             )),
             ("Save to db", SaveToDb()),
