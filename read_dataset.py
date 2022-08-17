@@ -9,14 +9,14 @@ def format_date(date):
 
 def get_quarter(date):
     day, month, year = list(map(int, date.split("-")))
-    return f"{year}Q{month//4+1}"
+    return f"{year}Q{(month-1)//3+1}"
                                   
 def speeches_from_json(json_file):
     with open(json_file, "r") as f:
         data = json.load(f)
     logging.info(f"read {json_file}")
     return [{
-        "file": json_file.split("/")[-1],
+        #"file": json_file.split("/")[-1],
         "section": data["section"], 
         "date": format_date(data["date"]),
         "quarter": get_quarter(data["date"]),

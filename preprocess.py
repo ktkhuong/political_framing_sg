@@ -16,6 +16,8 @@ def preprocess_speech(speech):
     speech = re.sub(r'([a-z])\1{2,}', r'\1', speech)
     # non-word repetition (if more than 1)
     speech = re.sub(r'([\W+])\1{1,}', r'\1', speech)
+    # combine hyphenated words
+    speech = re.sub(r'((?:\w+-)+\w+)', lambda x: ''.join(x.group().split('-')), speech)
     # remove "'s"
     speech = re.sub(r"'s ", ' ', speech)
     # stuff in parenthesis, assumed to be less informal
@@ -51,12 +53,12 @@ def preprocess_speech(speech):
 def lowercase(df_input, cols):
     df_copy = df_input.copy()
     for c in cols:
-      df_copy[c] = df_copy[c].str.lower()
+        df_copy[c] = df_copy[c].str.lower()
     return df_copy
 
-def drop_empty(df_input, cols):
+def drop_empty(df_input, cols) -> pd.DataFrame:
     for c in cols:
-      df_input = df_input[df_input[c] != ""]
+        df_input = df_input[df_input[c] != ""]
     return df_input
 
 def preprocess_section(s):
@@ -73,7 +75,7 @@ def preprocess_members(df_input, members):
         for name in names:
             if name in text:
                 return name
-        return ""
+        return "unidentifiable"
     df_input['member'] = df_input['member'].map(lambda text: name_or_empty(text, members))
     df_input = drop_empty(df_input, ["member"])
     return df_input

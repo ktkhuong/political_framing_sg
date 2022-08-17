@@ -40,22 +40,24 @@ def fit_window_topics(min_k=10, max_k=25):
     for time_window in time_windows:
         time_window.fit(coherence_model, min_k, max_k)
 
-    #clear_dir(DATA_PATH)
-
 def preprocess(parl_num):
     logger = logging.getLogger(__name__)
 
     path = f"{DATASET_PATH}/{parl_num}"
     records = [speech for f in os.listdir(path) if f.lower().endswith(".json") 
                       for speech in speeches_from_json(f"{path}/{f}")]
+    name2party = {}
     with open(f"{DATASET_PATH}/mp.txt") as f:
-        members = [re.sub(r"[^a-z. ]", "", line.replace("\n","").lower().strip()) for line in f.readlines() if line.strip()]
+        for line in f.readlines():
+            member, party = line.split(",")
+            member = re.sub(r"[^a-z. ]", "", member.replace("\n","").lower().strip())
+            party = party.strip('\n')
+            name2party[member] = party
     df = pd.DataFrame.from_records(records)
     df['date'] = pd.to_datetime(df['date'])
-    df_members = pd.DataFrame(members, columns=["name"])
-    df_members = df_members.drop_duplicates(["name"]).reset_index(drop=True)
-    df = preprocess_df(df, df_members['name'].values)
-    df.to_csv(f"{OUT_PATH}/parliament_{parl_num}.csv")
+    df = preprocess_df(df, name2party.keys())
+    df["party"] = df["member"].map(lambda x: name2party[x] if x in name2party else "PAP")
+    df.to_csv(f"{OUT_PATH}/parliament_{parl_num}.csv")    
     logger.info(f"Data frame: {df.shape}")
 
 def main():
