@@ -85,7 +85,7 @@ def preprocess_df(df_input, members):
     df_input = lowercase(df_input, ["section", "title", "member"])
 
     # drop rows where member is empty
-    df_input = drop_empty(df_input, ["member", "preprocessed_speech"])
+    df_input = drop_empty(df_input, ["member", "speech"])
     # drop rows if member is "speaker"
     df_input = df_input[df_input["member"].str.contains("speaker") == False]
     
