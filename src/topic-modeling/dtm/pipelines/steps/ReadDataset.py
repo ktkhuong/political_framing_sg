@@ -28,8 +28,9 @@ class ReadDataset(BaseEstimator, TransformerMixin):
         logger = logging.getLogger(__name__)
 
         df = pd.read_csv("sgparl.csv", usecols=["date", "quarter", "section", "title", "member", "preprocessed_speech", "party"])
+        logger.message(f"Dataset shape all: {df.shape}")
         df['date'] = pd.to_datetime(df['date'])
         if self.party != 'all':
             df = df[df["party"] == self.party]
-        logger.message(f"Dataset shape: {df.shape}")
+        logger.message(f"Dataset shape {self.party}: {df.shape}")
         return df

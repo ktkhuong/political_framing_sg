@@ -22,3 +22,5 @@ src/data-cleaning/ner/models
 **/nmf/*
 
 !requirements.txt
+!stopwords.txt
+!vm.txt

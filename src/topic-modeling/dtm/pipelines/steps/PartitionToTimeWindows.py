@@ -24,6 +24,7 @@ class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
         time_windows = []
         year_start = df["date"].dt.year.min()
         year_end = df["date"].dt.year.max()
+        logger.message(f"Dataset shape: {df.shape}")
         for year in range(year_start, year_end+1):
             for quarter in range(1,5):
                 df_quater = df[(df["date"].dt.year == year) & (df["date"].dt.quarter == quarter)]
@@ -31,9 +32,6 @@ class PartitionToTimeWindows(BaseEstimator, TransformerMixin):
 
                 if len(records) > 0: 
                     quarterly_speeches = df["tokenized_speech"].values[records]
-                    # fit Word2Vec
-                    
-                    # fit TF-IDF
                     tfidf = TfidfVectorizer(norm='l2', max_df=self.max_df, min_df=self.min_df, max_features=self.max_features)
                     tfidf_matrix = tfidf.fit_transform(quarterly_speeches)
                     window = TimeWindow(

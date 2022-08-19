@@ -39,7 +39,7 @@ class FirstLayerNMF(BaseEstimator, TransformerMixin):
         
     def fit_windows(self, host):
         commands = [
-            "sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_pap/w2v.model",
+            "sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_npap/w2v.model",
             #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_pap/w2v.model.syn1neg.npy",
             #"sudo wget -P cloud/data -c https://github.com/ktkhuong/sgparl/releases/download/w2v_pap/w2v.model.wv.vectors.npy",
             "cd cloud",

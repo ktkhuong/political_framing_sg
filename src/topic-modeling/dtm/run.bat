@@ -5,14 +5,13 @@ SET URL=https://github.com/ktkhuong/political_framing_sg/releases/download/datas
 SET FROM="1965-01-01"
 SET TO="2022-12-31"
 SET MACHINES=24
-SET DRANGE="25,90"
+SET KRANGE="15,40"
+SET DRANGE="10,30"
+SET PARTY="NPAP"
 
-rem call :clean
-rem python dtm.py -u %URL% --from %FROM% --to %TO% --machines %MACHINES% --drange %DRANGE% --party PAP --min-df 1 --min-count 1 --max-df 0.8
-rem call :post_run 1_pap_maxdf_08
 call :clean
-python dtm.py -u %URL% --from %FROM% --to %TO% --machines %MACHINES% --drange %DRANGE% --party NPAP --min-count 1 --min-df 1 --max-df 1 
-call :post_run 1_npap
+python dtm.py -u %URL% --from %FROM% --to %TO% --machines %MACHINES% --krange %KRANGE% --drange "10,30" --party %PARTY% --min-count 1 --min-df "1" --max-df "1.0"
+call :post_run opposition
 
 :clean
 IF EXIST "in" (
@@ -38,6 +37,7 @@ EXIT /B 0
 :post_run
 echo D | xcopy sgparl.db e:\archive\experiments\%~1 /y
 xcopy sgparl_tokenized.csv e:\archive\experiments\%~1 /y
+xcopy out\w2v.model e:\archive\experiments\%~1 /y
 xcopy dtm.pkl e:\archive\experiments\%~1 /y
 xcopy dtm.log e:\archive\experiments\%~1 /y
 xcopy in\* e:\archive\experiments\%~1 /y

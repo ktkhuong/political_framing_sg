@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 
 class RemoveShortSpeeches(BaseEstimator, TransformerMixin):
-    DEFAULT_MIN_SPEECH_LENGTH = 100
+    DEFAULT_MIN_SPEECH_LENGTH = 40
 
     def __init__(self, min_speech_length = DEFAULT_MIN_SPEECH_LENGTH):
         self.min_speech_length = min_speech_length
