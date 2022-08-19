@@ -97,7 +97,7 @@ def main():
     pipeline = Pipeline(
         steps=[
             ("Setup virtual machines", SetupVirtualMachines(VIRTUAL_MACHINES[:options.machines])),
-            #("Preprocess dataset", PreprocessDataset(VIRTUAL_MACHINES[:options.machines], url)),
+            ("Preprocess dataset", PreprocessDataset(VIRTUAL_MACHINES[:options.machines], options.url)),
             ("Read dataset", ReadDataset(party=options.party)),
             ("Filter data frame by dates", FilterByDates(options.start_date, options.end_date)),
             ("Remove short speeches", RemoveShortSpeeches()),
