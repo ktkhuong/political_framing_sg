@@ -10,7 +10,10 @@ SET DRANGE="10,30"
 SET PARTY="NPAP"
 
 call :clean
-python dtm.py -u %URL% --from %FROM% --to %TO% --machines %MACHINES% --krange %KRANGE% --drange "10,30" --party %PARTY% --min-count 1 --min-df "1" --max-df "1.0"
+python dtm.py -u %URL% --from %FROM% --to %TO% --machines %MACHINES% --krange %KRANGE% --drange "10,30" --party "PAP" --min-count 1 --min-df "1" --max-df "1.0"
+call :post_run pap
+call :clean
+python dtm.py -u %URL% --from %FROM% --to %TO% --machines %MACHINES% --krange %KRANGE% --drange "10,30" --party "NPAP" --min-count 1 --min-df "1" --max-df "1.0"
 call :post_run opposition
 
 :clean
