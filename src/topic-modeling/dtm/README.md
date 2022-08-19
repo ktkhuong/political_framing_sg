@@ -3,6 +3,8 @@
 **Requirements**:
 * Python 3.8
 * Pip >= 22.2.2
+* gcloud
+* PuTTy
 
 1. Create a virtual environment
 ```python
